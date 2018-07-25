@@ -1,4 +1,4 @@
-# RTAsciguiPlotlyComponents
+# RTA-GUI-Components
 
 ## First setup
 Download node binaries
@@ -60,4 +60,3 @@ Example:
 # \<light-curve\>
 
 This element will display the light-curve plot
-
