@@ -1,0 +1,23 @@
+{
+  "name": "test_page",
+  "version": "1.0.0",
+  "description": " Test page for the RTA-GUI-Components project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cta-rta/RTA-GUI-Component.git"
+  },
+  "author": "Leonardo Baroncelli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cta-rta/RTA-GUI-Component/issues"
+  },
+  "homepage": "https://github.com/cta-rta/RTA-GUI-Component#readme",
+  "dependencies": {
+    "bower": "^1.8.4",
+    "express": "^4.16.3"
+  }
+}
