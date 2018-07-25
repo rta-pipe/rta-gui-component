@@ -9,7 +9,7 @@ This software contains Plotly.js plots incapsulated in Polymer Components. Each 
 ## Visualizing the components
 
 ### Description:
-In order to test the Polymer components, an Express (Node.js) has been setted up. Starts the server and then connect to it with the browser (use an ssh-tunnel if you are connceting with a remote ssh connection).
+In order to test the Polymer components, an Express (Node.js) server has been setted up. Starts the server and then connect to it with the browser (use an ssh-tunnel if you are connceting with a remote ssh connection).
 
 ### Pre-requisities:
 * Node.js (download binaries at https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz)
@@ -18,17 +18,18 @@ In order to test the Polymer components, an Express (Node.js) has been setted up
 * git clone https://github.com/cta-rta/RTA-GUI-Component
 * cd RTA-GUI-Component/test_page
 * prepend-path PATH \<node_folder\>/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
-* npm install
+* npm install (it will install the Node dependencies)
 * bower install (it will install the components dependencies)
-* node index.js (it will start the server)
+* . start_server.sh (will copy the components in the test_page and it will start the server)
 * (optional) If using a ssh remote connetction, use a ssh-tunnel with:  ssh -N -L \<your-port\>:localhost:3000 \<user@machine-address\>
 
 ### After first-time setup:
 * cd RTA-GUI-Component/test_page
 * prepend-path PATH \<node_folder\>/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
 * . start_server.sh (will copy the components in the test_page and it will start the server)
+* (optional) If using a ssh remote connetction, use a ssh-tunnel with:  ssh -N -L \<your-port\>:localhost:3000 \<user@machine-address\>
 
-
+# Components
 
 ## \<light-curve\>
 
