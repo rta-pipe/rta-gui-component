@@ -1,0 +1,7 @@
+node_modules/
+
+
+light-curve/index.html
+light-curve/bower_components/
+light-curve/demo
+light-curve/test

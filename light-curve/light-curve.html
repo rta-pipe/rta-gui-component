@@ -1,0 +1,39 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<!--<link rel="import" href="../plotly.js/polymer-element.html">-->
+
+
+
+<dom-module id="light-curve">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `light-curve`
+     * This element will display the light-curve plot
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class LightCurve extends Polymer.Element {
+      static get is() { return 'light-curve'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'light-curve'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(LightCurve.is, LightCurve);
+  </script>
+</dom-module>
