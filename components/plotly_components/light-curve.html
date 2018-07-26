@@ -310,6 +310,59 @@
   </template>
 
   <script>
+
+  function TraceClass(className, color){
+    this.className = className;
+    this.color = color;
+    this.text_data = [];
+    this.x_data = [];
+    this.y_data = [];
+    this.error_x_data = [];
+    this.error_y_data = [];
+  }
+
+  // Add methods like this.  All Person objects will be able to invoke this
+  TraceClass.prototype.shiftDataArrays = function(shiftLength) {
+    for(var i=0; i < shiftLength; i++){
+      this.text_data.shift();
+      this.x_data.shift();
+      this.y_data.shift();
+      this.error_x_data.shift();
+      this.error_y_data.shift();
+    }
+  };
+
+  TraceClass.prototype.feed = function(text, x, y, err_x, err_y) {
+    this.text_data.push(text);
+    this.x_data.push(x);
+    this.y_data.push(y);
+    this.error_x_data.push(err_x);
+    this.error_y_data.push(err_y);
+  }
+
+  TraceClass.prototype.getTraceForPlotly = function(generalTraceLayout) {
+    var _text_data = Array.from(this.text_data);
+    var _x_data = Array.from(this.x_data);
+    var _y_data = Array.from(this.y_data);
+    var _err_x_data = Array.from(this.error_x_data);
+    var _err_y_data = Array.from(this.error_y_data);
+
+    var trace = JSON.parse(JSON.stringify(generalTraceLayout));
+
+    trace["text"] = _text_data;
+    trace["x"] = _x_data;
+    trace["y"] = _y_data;
+    trace["marker"]["color"] = this.color;
+    trace["error_x"]["array"] = _err_x_data;
+    trace["error_x"]["color"] = this.color;
+
+    trace["error_y"]["array"] = _err_y_data;
+    trace["error_y"]["color"] = this.color;
+
+    return trace;
+
+  }
+
     /**
      * `light-curve`
      * This element will display the light-curve plot
@@ -322,27 +375,48 @@
       constructor() {
         super();
         this.plotName = 'light-curve-div';
+        this.annotations = [];
+        this.countData = 0;
+        this.countDataOnPlot = 0;
+
+        this.dataArrays = {};
+        this.dataHistory = []; // remember on which container the data has been pushed each time
 
 
 
-        // Must be incapsulated
+        /* Must be incapsulated
         this.text_data = [];
         this.x_data = [];
         this.y_data = [];
         this.error_x_data = [];
         this.error_y_data = [];
-        this.annotations = [];
+        */
 
 
-        this.countData = 0;
-        this.countDataOnPlot = 0;
 
 
 
       }
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
+      getTotalPoints() {
+        var sum = 0;
+        for(var i = 0; i < this.classesnumber; i++)
+            sum += this.dataArrays[i].y_data.length;
+        return sum;
+      }
+
+
       ready() {
         super.ready();
+
+        // initialize the data dataArrays
+        for(var i = 0; i < this.classesnumber; i++)
+        {
+          var colorG = 80+i*(~~(149/this.classesnumber));
+          this.dataArrays[i] = new TraceClass(i,"rgb(244, "+colorG.toString()+", 66)");
+        }
+        console.log(this.dataArrays);
+
         // initialize the plot
         Plotly.plot( this.getPlot(), [this.generalTraceLayout], this.layout);
       }
@@ -378,6 +452,14 @@
             type: String,
             value: 'Label not set',
           },
+          ylabelmin: {
+            type: Number,
+            value: 0,
+          },
+          ylabelmax: {
+            type: Number,
+            value: 100,
+          },
           classesnumber: {
             type: Number,
             value: 2
@@ -392,7 +474,7 @@
           },
           layout: {
             type: Object,
-            computed: 'computeLayout(plottitle, xlabel, ylabel)'
+            computed: 'computeLayout(plottitle, xlabel, ylabel, ylabelmin ,ylabelmax)'
           },
           generalTraceLayout: {
             type: Object,
@@ -407,15 +489,15 @@
       computeStyleString(width, height) {
         return "width:"+width+"; height:"+height+";"
       }
-      computeLayout(plottitle, xlabel, ylabel) {
+      computeLayout(plottitle, xlabel, ylabel, ylabelmin, ylabelmax) {
         return {
           showlegend: false,
           title: plottitle,
           xaxis: {
             title: xlabel,
             showgrid: true,
-            zeroline: false,
-            showline: false,
+            zeroline: true,
+            showline: true,
             tickformat:"05.f",
             tickangle:0,
             titlefont: {
@@ -425,11 +507,11 @@
             }
           },
           yaxis: {
-            //range: [min_flux-100,max_flux+100 ],
+            range: [ylabelmin,ylabelmax],
             title: ylabel,
             showgrid: true,
-            zeroline: false,
-            showline: false,
+            zeroline: true,
+            showline: true,
             titlefont: {
               family: 'Courier New, monospace',
               size: 18,
@@ -480,11 +562,12 @@
               }
       }
 
-      addPoint(text, x, y, err_x, err_y, addUpperLimit) {
+      addPoint(text, x, y, err_x, err_y, addUpperLimit, pointClass) {
         console.log("new point",x+","+y);
         this.countData += 1;
+        this.dataHistory.push(pointClass);
 
-        if(this.y_data.length >= this.slidingwindowsize) {
+      /*  if(this.y_data.length >= this.slidingwindowsize) {
           var offset = this.y_data.length - this.slidingwindowsize;
           for(var i=0; i <= offset; i++){
             this.text_data.shift();
@@ -500,12 +583,24 @@
         this.y_data.push(y);
         this.error_x_data.push(err_x);
         this.error_y_data.push(err_y);
+        */
+        this.dataArrays[pointClass].feed(text, x, y, err_x, err_y);
 
 
+        var totalPointsOnWindow = this.getTotalPoints();
+        if(totalPointsOnWindow > this.slidingwindowsize)
+        {
+            var offset = totalPointsOnWindow - this.slidingwindowsize;
+            for(var i=0; i < offset; i++)
+            {
+              var container = this.dataHistory.shift(); // take the history...last in first out
+              this.dataArrays[container].shiftDataArrays(1);
+            }
+        }
 
+        this.countDataOnPlot = this.getTotalPoints();
 
-        this.countDataOnPlot = this.y_data.length;
-
+/*
         var _text_data = Array.from(this.text_data);
         var _x_data = Array.from(this.x_data);
         var _y_data = Array.from(this.y_data);
@@ -517,6 +612,7 @@
         this.generalTraceLayout["y"] = _y_data;
         this.generalTraceLayout["error_x"]["array"] = _err_x_data;
         this.generalTraceLayout["error_y"]["array"] = _err_y_data;
+*/
 
 
 
@@ -549,12 +645,24 @@
         this.layout["annotations"] = _annotations;
 
 
+        var traces = [];
+        for(var i = 0; i < this.classesnumber; i++)
+        {
+          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
+          //console.log(trace);
+          traces.push(trace);
+        }
 
+
+    //      console.log(traces);
         ////////////////////////////////////////////////////////////////////////
         // Update plot
-        Plotly.react(this.getPlot(), [this.generalTraceLayout], this.layout);
-
+        Plotly.react(this.getPlot(), traces, this.layout);
+      //  Plotly.react(this.getPlot(), [this.generalTraceLayout], this.layout);
       }
+
+
+
       increaseSlidingWindowSize() {
         this.slidingwindowsize += 1;
       }

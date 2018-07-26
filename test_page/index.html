@@ -23,15 +23,24 @@
           <button class="btn btn-success" onclick="changeDataRate(-1)">Decrease sleep between data generation</button>
           <button class="btn btn-success" onclick="changeDataRate(1)">Increase sleep between data generation</button>
           <button class="btn btn-danger" id="stopDataGen" onclick="stopGeneratingData()">Stop data generation</button>
-
         </div>
+
         <br>
         <hr>
         <br>
         <div class="container">
-          <light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Very sexy light curve" xLabel="MJD" classesNumber=3 slidingWindowSize=5></light-curve>
+          <light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Very sexy light curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5></light-curve>
           <button class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</button>
           <button class="btn btn-danger" onclick="decreaseSlidingWindowSize()">Decrease window size</button>
+        </div>
+
+        <br>
+        <hr>
+        <br>
+        <div class="container">
+
+
+
         </div>
     </div>
 
@@ -61,7 +70,15 @@
     }
     function startGeneratingData() {
       interval = setInterval(function(){
-        document.querySelector('#lightCurveWebcomp').addPoint(generateRndText(), count, Math.floor(Math.random() * 10), Math.floor(Math.random() * 2), Math.floor(Math.random() * 2), flipCoin());
+        var rnd = Math.floor(Math.random() * 10);
+        var pointClass;
+        if(rnd <= 3)
+          pointClass = 2;
+        else if(rnd > 3 && rnd <=6)
+          pointClass = 1;
+        else
+          pointClass = 0;
+        document.querySelector('#lightCurveWebcomp').addPoint(generateRndText(), count, rnd, Math.floor(Math.random() * 2), Math.floor(Math.random() * 2), flipCoin(), pointClass);
         count += 5;
       }, intervalTime);
       $('#dt').text("Sleep: "+intervalTime+" ms");
