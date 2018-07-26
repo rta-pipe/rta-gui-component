@@ -8,12 +8,37 @@
 
     <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
     <link rel="import" href="/components/light-curve.html">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
   </head>
   <body>
     <div class="vertical-section-container centered">
-      <h3>light-curve demo</h3>
-        <light-curve></light-curve>
+      <h1>RTA-GUI-Components Testpage</h1>
+        <light-curve id="lightCurveWebcomp" width="600px" ></light-curve>
     </div>
+
+
+    <script>
+    var lightCurveLayout = {
+      'title': 'Light curve plot',
+      'xaxis': {
+        'title': 'Count data',
+        'showgrid': 'true',
+        'zeroline': 'false',
+        'showline': 'false'
+      },
+      'yaxis': {
+        'title': 'Data value',
+        'showgrid': 'true'
+      }
+    };
+
+    $('document').ready(function() {
+      setInterval(function(){
+        document.querySelector('#lightCurveWebcomp').addPoint(Math.random());
+      },2000);
+    });
+
+    </script>
   </body>
 </html>
