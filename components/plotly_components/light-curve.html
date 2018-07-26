@@ -299,11 +299,12 @@
     </style>
     <h2>[[elemName]]</h2>
     <div>
-      <p>Window size: [[slidingWindowMaxSize]]</p>
+      <p>Window size: [[slidingwindowsize]]</p>
       <p>Points on plot: [[countDataOnPlot]]</p>
       <p>Points plotted: [[countData]]</p>
+      <p>Classes number: [[classesnumber]]</p>
     </div>
-    <div id="light-curve-div" style="{{styleString}}"></div> <!--style="width:600px;height:400px;"-->
+    <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
 
 
   </template>
@@ -321,19 +322,29 @@
       constructor() {
         super();
         this.plotName = 'light-curve-div';
-        this.y_data = [];
+
+
+
+        // Must be incapsulated
+        this.text_data = [];
         this.x_data = [];
-        this.slidingWindowMaxSize = 5;
+        this.y_data = [];
+        this.error_x_data = [];
+        this.error_y_data = [];
+        this.annotations = [];
+
+
         this.countData = 0;
         this.countDataOnPlot = 0;
+
+
 
       }
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
       ready() {
         super.ready();
-
         // initialize the plot
-        Plotly.plot( this.getPlot(), [this.traceData], this.layout);
+        Plotly.plot( this.getPlot(), [this.generalTraceLayout], this.layout);
       }
 
       //////////////////////////////////////////
@@ -348,70 +359,208 @@
             value: 'light-curve'
           },
           width: {
-            type: Number,
-            value: 400
+            type: String,
+            value: "400px"
           },
           height: {
-            type: Number,
-            value: 400
+            type: String,
+            value: "400px"
           },
-          styleString: {
+          plottitle: {
+            type: String,
+            value: 'Title not set'
+          },
+          xlabel: {
+            type: String,
+            value: 'Label not set',
+          },
+          ylabel: {
+            type: String,
+            value: 'Label not set',
+          },
+          classesnumber: {
+            type: Number,
+            value: 2
+          },
+          slidingwindowsize: {
+            type: Number,
+            value: 100
+          },
+          stylestring: {
             type: String,
             computed: 'computeStyleString(width, height)'
           },
           layout: {
             type: Object,
-            value: {title: 'Light curve'}
+            computed: 'computeLayout(plottitle, xlabel, ylabel)'
           },
-          traceData: {
-            type: Array,
-            value: {
-              mode: 'lines+markers',
-              marker: {color: "red", size:3},
-              line: {width: 1}
-            }
+          generalTraceLayout: {
+            type: Object,
+            computed: 'computeGeneralTraceLayout()'
+          },
+          annotationsLayout: {
+            type: Object,
+            computed: 'computeAnnotationsLayout()'
           }
-
         };
       }
       computeStyleString(width, height) {
-        return "width:"+width+"px; height:"+height+"px;"
+        return "width:"+width+"; height:"+height+";"
       }
-      addPoint(point) {
-        console.log("new point",point);
+      computeLayout(plottitle, xlabel, ylabel) {
+        return {
+          showlegend: false,
+          title: plottitle,
+          xaxis: {
+            title: xlabel,
+            showgrid: true,
+            zeroline: false,
+            showline: false,
+            tickformat:"05.f",
+            tickangle:0,
+            titlefont: {
+              family: 'Courier New, monospace',
+              size: 18,
+              color: '#7f7f7f'
+            }
+          },
+          yaxis: {
+            //range: [min_flux-100,max_flux+100 ],
+            title: ylabel,
+            showgrid: true,
+            zeroline: false,
+            showline: false,
+            titlefont: {
+              family: 'Courier New, monospace',
+              size: 18,
+              color: '#7f7f7f'
+            }
+          }
+        }
+      }
+      computeGeneralTraceLayout() {
+        return {
+                  mode: 'markers',
+                  marker: {
+                    size:8,
+                    symbol: ['circle']
+                  },
+                  hoverinfo: 'text',
+                  type: 'scatter',
+                  error_x: {
+                    type: 'data',
+                    visible: true,
+                    width: 0,
+                    thickness : 1
+                  },
+                  error_y: {
+                    type: 'data',
+                    visible: true,
+                    width: 0,
+                    thickness : 1
+                  },
+               }
+      }
+      computeAnnotationsLayout() {
+        return {
+                'xref':'x',
+                'yref':'y',
+                'axref':'x',
+                'ayref':'pixel',
+                'text':'',
+                'showarrow':true,
+                'arrowhead': 2,
+                'arrowsize': 1,
+                'arrowwidth': 1,
+                'arrowcolor': 'rgb(0, 0, 0)',
+                'ay':50,
+                'borderwidth': 0,
+                'borderpad': 0,
+                'arrowside':'start'
+              }
+      }
+
+      addPoint(text, x, y, err_x, err_y, addUpperLimit) {
+        console.log("new point",x+","+y);
         this.countData += 1;
 
-        //var newPoint = { y: [[point]] };
-        //Plotly.extendTraces( this.getPlot(), newPoint, [0]);
-
-        if(this.y_data.length >= this.slidingWindowMaxSize) {
-          var offset = this.y_data.length - this.slidingWindowMaxSize;
+        if(this.y_data.length >= this.slidingwindowsize) {
+          var offset = this.y_data.length - this.slidingwindowsize;
           for(var i=0; i <= offset; i++){
-            this.y_data.shift();
+            this.text_data.shift();
             this.x_data.shift();
+            this.y_data.shift();
+            this.error_x_data.shift();
+            this.error_y_data.shift();
           }
         }
 
-        this.y_data.push(point);
-        this.x_data.push(this.countData);
+        this.text_data.push(text);
+        this.x_data.push(x);
+        this.y_data.push(y);
+        this.error_x_data.push(err_x);
+        this.error_y_data.push(err_y);
+
+
+
 
         this.countDataOnPlot = this.y_data.length;
 
+        var _text_data = Array.from(this.text_data);
         var _x_data = Array.from(this.x_data);
         var _y_data = Array.from(this.y_data);
+        var _err_x_data = Array.from(this.error_x_data);
+        var _err_y_data = Array.from(this.error_y_data);
 
-        this.traceData["x"] = _x_data;
-        this.traceData["y"] = _y_data;
+        this.generalTraceLayout["text"] = _text_data;
+        this.generalTraceLayout["x"] = _x_data;
+        this.generalTraceLayout["y"] = _y_data;
+        this.generalTraceLayout["error_x"]["array"] = _err_x_data;
+        this.generalTraceLayout["error_y"]["array"] = _err_y_data;
 
-        Plotly.react(this.getPlot(), [this.traceData]);
+
+
+
+        ////////////////////////////////////////////////////////////////////////
+        // Annotations (Upper Limit Arrows)
+        var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
+
+        if(addUpperLimit)
+        {
+          annotation["x"]  = x;
+          annotation["y"]  = y;
+          annotation["ax"] = x;
+        }
+        else
+        {
+          annotation["showarrow"] = false;
+        }
+        this.annotations.push(annotation);
+
+        if(this.annotations.length > this.slidingwindowsize)
+        {
+          var offset = this.annotations.length - this.slidingwindowsize;
+          for(var i=0; i < offset; i++)
+          {
+            this.annotations.shift();
+          }
+        }
+        var _annotations = Array.from(this.annotations);
+        this.layout["annotations"] = _annotations;
+
+
+
+        ////////////////////////////////////////////////////////////////////////
+        // Update plot
+        Plotly.react(this.getPlot(), [this.generalTraceLayout], this.layout);
 
       }
       increaseSlidingWindowSize() {
-        this.slidingWindowMaxSize += 1;
+        this.slidingwindowsize += 1;
       }
       decreaseSlidingWindowSize() {
-        if(this.slidingWindowMaxSize > 1)
-          this.slidingWindowMaxSize -= 1;
+        if(this.slidingwindowsize > 1)
+          this.slidingwindowsize -= 1;
       }
 
     }

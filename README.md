@@ -32,11 +32,27 @@ In order to test the Polymer components, an Express (Node.js) server has been se
 
 ## \<light-curve\>
 
-This element will display the light-curve plot
+This element will display the light-curve plot. The light curve plot show the intensity of an astrophysical source with respect to time. Each point has a vertical and horizontal error bar or it can have an upper limit (an arrow facing down). The points can have different colors, depending on their TS value.
+
+Configurations:
+* height and width of the plot
+* title and axis labels
+* number of point classes (each class has a certain color)
+* sliding window initial size (only in the case of linear axis)
+
+Example
+\<light-curve width="400px" height="200px" plottitle="LC" xLabel="MJD" yLabel="Intensity" classesNumber="3" slidingWindowSize="15"\>\<\light-curve\>
+
+Interface:
+* addPoint(text, x, y, err_x, err_y, addUpperLimit)
+
+## \<spectral-light-curve\>
 
 
 
-# Developing
+
+
+# Development
 
 ## First setup
 Download node binaries

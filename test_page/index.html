@@ -10,35 +10,87 @@
     <link rel="import" href="/components/light-curve.html">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
   </head>
   <body>
-    <div class="vertical-section-container centered">
+    <div class="container">
       <h1>RTA-GUI-Components Testpage</h1>
-        <light-curve id="lightCurveWebcomp" width="600px" ></light-curve>
+        <div class="container">
+          <p id="dt"></p>
+          <button class="btn btn-success" onclick="changeDataRate(-1)">Decrease sleep between data generation</button>
+          <button class="btn btn-success" onclick="changeDataRate(1)">Increase sleep between data generation</button>
+          <button class="btn btn-danger" id="stopDataGen" onclick="stopGeneratingData()">Stop data generation</button>
+
+        </div>
+        <br>
+        <hr>
+        <br>
+        <div class="container">
+          <light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Very sexy light curve" xLabel="MJD" classesNumber=3 slidingWindowSize=5></light-curve>
+          <button class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</button>
+          <button class="btn btn-danger" onclick="decreaseSlidingWindowSize()">Decrease window size</button>
+        </div>
     </div>
 
 
     <script>
-    var lightCurveLayout = {
-      'title': 'Light curve plot',
-      'xaxis': {
-        'title': 'Count data',
-        'showgrid': 'true',
-        'zeroline': 'false',
-        'showline': 'false'
-      },
-      'yaxis': {
-        'title': 'Data value',
-        'showgrid': 'true'
-      }
-    };
+
+    var interval;
+    var intervalTime = 2000;
+    var count = 0;
+
+    function flipCoin() {
+      if(Math.random()>0.5)
+        return true;
+      else
+        return false;
+    }
+    function generateRndText() {
+      var text = "";
+      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for (var i = 0; i < 5; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      return text;
+    }
+
+    function stopGeneratingData() {
+      clearInterval(interval);
+    }
+    function startGeneratingData() {
+      interval = setInterval(function(){
+        document.querySelector('#lightCurveWebcomp').addPoint(generateRndText(), count, Math.floor(Math.random() * 10), Math.floor(Math.random() * 2), Math.floor(Math.random() * 2), flipCoin());
+        count += 5;
+      }, intervalTime);
+      $('#dt').text("Sleep: "+intervalTime+" ms");
+    }
+    function changeDataRate(offset) {
+
+      stopGeneratingData();
+
+      if(offset<0 && intervalTime>200)
+        intervalTime = intervalTime - 200;
+
+      if(offset>0 && intervalTime<4000)
+        intervalTime = intervalTime + 200;
+
+      startGeneratingData();
+
+    }
 
     $('document').ready(function() {
-      setInterval(function(){
-        document.querySelector('#lightCurveWebcomp').addPoint(Math.random());
-      },2000);
+      startGeneratingData();
+
     });
 
+    function increaseSlidingWindowSize() {
+      document.querySelector('#lightCurveWebcomp').increaseSlidingWindowSize();
+    }
+    function decreaseSlidingWindowSize() {
+      document.querySelector('#lightCurveWebcomp').decreaseSlidingWindowSize();
+    }
     </script>
   </body>
 </html>
