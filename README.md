@@ -37,16 +37,22 @@ This element will display the light-curve plot. The light curve plot show the in
 Configurations:
 * height and width of the plot
 * title and axis labels
-* min y, max y
-* number of point classes (each class, from 0 to n-1, has a certain color)
+* number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
 * sliding window initial size (only in the case of linear axis)
+* sliding window max size (defailt = 500)
+* sliding window min size (default = 1)
+* Debug mode: display informations and a performance plot
 
 Example
 
-\<light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Light Curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5\>\<\/light-curve\>
+\<light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Light Curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5 debug=true\>\<\/light-curve\>
 
 Interface:
-* addPoint(text, x, y, err_x, err_y, addUpperLimit, pointClass)
+* setYlimits(ymin, ymax); //(this interval will be stretched of another 20%)
+* addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
+* resetPlot();
+
+
 
 ## \<spectral-light-curve\>
 

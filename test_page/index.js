@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var path = require('path');
 
-app.use('/static', express.static(path.join(__dirname, 'public')))
+app.use('/static', express.static(path.join(__dirname, '/examples')))
 app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')))
 app.use('/components', express.static(path.join(__dirname, '/components')))
 

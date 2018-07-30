@@ -298,12 +298,26 @@
      }
     </style>
     <h2>[[elemName]]</h2>
-    <div>
-      <p>Window size: [[slidingwindowsize]]</p>
-      <p>Points on plot: [[countDataOnPlot]]</p>
-      <p>Points plotted: [[countData]]</p>
-      <p>Classes number: [[classesnumber]]</p>
-    </div>
+    <table hidden$="[[!debug]]">
+      <tr>
+        <td>
+          <div>
+            <p>Window size: [[slidingwindowsize]]</p>
+            <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
+            <p>Points on plot: [[countDataOnPlot]]</p>
+            <!--<p>Points plotted: [[countData]]</p>-->
+            <p>Classes number: [[classesnumber]]</p>
+            <p>Time taken to add the LAST point: [[performanceTime]]s </p>
+          </div>
+        </td>
+        <td>
+          <div id="perf-graph" style="width: 480px; height: 400px;"></div>
+        </td>
+      </tr>
+    </table>
+
+
+
     <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
 
 
@@ -317,27 +331,33 @@
     this.text_data = [];
     this.x_data = [];
     this.y_data = [];
+    // asymmetric error bars
     this.error_x_data = [];
+    this.error_x_data_minus = [];
     this.error_y_data = [];
+    this.error_y_data_minus = [];
   }
 
-  // Add methods like this.  All Person objects will be able to invoke this
   TraceClass.prototype.shiftDataArrays = function(shiftLength) {
     for(var i=0; i < shiftLength; i++){
       this.text_data.shift();
       this.x_data.shift();
       this.y_data.shift();
       this.error_x_data.shift();
+      this.error_x_data_minus.shift();
       this.error_y_data.shift();
+      this.error_y_data_minus.shift();
     }
   };
 
-  TraceClass.prototype.feed = function(text, x, y, err_x, err_y) {
+  TraceClass.prototype.feed = function(text, x, y, err_x, err_x_minus, err_y, err_y_minus) {
     this.text_data.push(text);
     this.x_data.push(x);
     this.y_data.push(y);
     this.error_x_data.push(err_x);
+    this.error_x_data_minus.push(err_x_minus);
     this.error_y_data.push(err_y);
+    this.error_y_data_minus.push(err_y_minus);
   }
 
   TraceClass.prototype.getTraceForPlotly = function(generalTraceLayout) {
@@ -345,7 +365,10 @@
     var _x_data = Array.from(this.x_data);
     var _y_data = Array.from(this.y_data);
     var _err_x_data = Array.from(this.error_x_data);
+    var _err_x_data_minus = Array.from(this.error_x_data_minus);
     var _err_y_data = Array.from(this.error_y_data);
+    var _err_y_data_minus = Array.from(this.error_y_data_minus);
+
 
     var trace = JSON.parse(JSON.stringify(generalTraceLayout));
 
@@ -353,10 +376,14 @@
     trace["x"] = _x_data;
     trace["y"] = _y_data;
     trace["marker"]["color"] = this.color;
+
+    // error bars
     trace["error_x"]["array"] = _err_x_data;
+    trace["error_x"]["arrayminus"] = _err_x_data_minus;
     trace["error_x"]["color"] = this.color;
 
     trace["error_y"]["array"] = _err_y_data;
+    trace["error_y"]["arrayminus"] = _err_y_data_minus;
     trace["error_y"]["color"] = this.color;
 
     return trace;
@@ -372,55 +399,115 @@
      * @demo demo/index.html
      */
     class LightCurve extends Polymer.Element {
+
+      // private properties
       constructor() {
         super();
         this.plotName = 'light-curve-div';
-        this.annotations = [];
-        this.countData = 0;
-        this.countDataOnPlot = 0;
-
-        this.dataArrays = {};
-        this.dataHistory = []; // remember on which container the data has been pushed each time
 
 
+        this.countData = 0; // global points counter
+        this.countDataOnPlot = 0; // counts the points displayed
 
-        /* Must be incapsulated
-        this.text_data = [];
-        this.x_data = [];
-        this.y_data = [];
-        this.error_x_data = [];
-        this.error_y_data = [];
-        */
+        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
+        this.dataHistory = []; // remember in which container the data has been pushed each time
 
+        this.annotations = []; // the annotations are independent from the classes
 
-
-
-
+        this.performanceTime = 0;
       }
+
+      // selector
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
+      getPerformancePlot() { return this.shadowRoot.querySelector("#perf-graph"); }
+      // counts all the points of every container (TraceClass)
       getTotalPoints() {
         var sum = 0;
         for(var i = 0; i < this.classesnumber; i++)
             sum += this.dataArrays[i].y_data.length;
         return sum;
       }
+      getClassColor(classesNumber, classIndex) {
 
+        if ( classesNumber == 1 )
+          var colors = ["#04f2f2"];    // light blue
+        else if( classesNumber == 2)
+          var colors = ["#04f2f2", "#f18a03"]; // light blue, orange
+        else if( classesNumber == 3)
+          var colors = ["#04f2f2", "#f18a03", "#ef0000"]; // light blue, orange, red
+        else if( classesNumber == 4)
+          var colors = ["#04f2f2", "#003cef", "#f18a03", "#ef0000"]; // light blue, blue, orange, red
+        else if( classesNumber == 5)
+          var colors = ["#5fa815", "#003cef", "#f18a03", "#ef0000"];  // green, light blue, blue, orange, red
+        else
+          var colors = ["#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6"]; // all purple
+
+        return colors[classIndex];
+      }
 
       ready() {
         super.ready();
 
-        // initialize the data dataArrays
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          var colorG = 80+i*(~~(149/this.classesnumber));
-          this.dataArrays[i] = new TraceClass(i,"rgb(244, "+colorG.toString()+", 66)");
-        }
-        console.log(this.dataArrays);
+        this.initLightCurvePlot();
 
-        // initialize the plot
-        Plotly.plot( this.getPlot(), [this.generalTraceLayout], this.layout);
+        this.initPerformancePlot(true);
       }
 
+      initLightCurvePlot() {
+        this.countData = 0; // global points counter
+        this.countDataOnPlot = 0; // counts the points displayed
+        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
+        this.dataHistory = []; // remember in which container the data has been pushed each time
+        this.annotations = []; // the annotations are independent from the classes
+        this.performanceTime = 0;
+        
+        this.layout["annotations"];
+        ////////////////////////////////////////////////////////////////////////
+        // Computing colors
+        var colors = [];
+        for(var i = 0; i < this.classesnumber; i++)
+        {
+          colors.push(this.getClassColor(this.classesnumber,i));
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        // Initialize the Data Arrays
+        for(var i = 0; i < this.classesnumber; i++)
+        {
+          this.dataArrays[i] = new TraceClass(i,colors[i]);
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        // Get Plotly trace objects
+        var traces = [];
+        for(var i = 0; i < this.classesnumber; i++)
+        {
+          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
+          trace["marker"]["color"] = colors[i];
+          traces.push(trace);
+        }
+        ////////////////////////////////////////////////////////////////////////
+
+        // initialize the plot
+        Plotly.newPlot( this.getPlot(), traces, this.layout, {scrollZoom: true});
+
+      }
+
+      initPerformancePlot(isFirstLoad){
+        if(this.debug)
+        {
+          var initData = {  x: [], y: [], text: []  };
+          if(isFirstLoad)
+            Plotly.newPlot(this.getPerformancePlot(), [initData], this.computeLayout("Performance (only points)", "Points to be displayed", "Seconds"));
+          else
+            Plotly.react(this.getPerformancePlot(), [initData], this.computeLayout("Performance (only points)", "Points to be displayed", "Seconds"));
+        }
+      }
+
+      resetPlot() {
+        this.initLightCurvePlot();
+        this.initPerformancePlot(true);
+      }
       //////////////////////////////////////////
       // PUBLIC API
       //////////////////////////////////////////
@@ -452,14 +539,6 @@
             type: String,
             value: 'Label not set',
           },
-          ylabelmin: {
-            type: Number,
-            value: 0,
-          },
-          ylabelmax: {
-            type: Number,
-            value: 100,
-          },
           classesnumber: {
             type: Number,
             value: 2
@@ -468,13 +547,21 @@
             type: Number,
             value: 100
           },
+          slidingwindowmaxsize: {
+            type: Number,
+            value: 300
+          },
+          slidingwindowminsize: {
+            type: Number,
+            value: 1
+          },
           stylestring: {
             type: String,
             computed: 'computeStyleString(width, height)'
           },
           layout: {
             type: Object,
-            computed: 'computeLayout(plottitle, xlabel, ylabel, ylabelmin ,ylabelmax)'
+            computed: 'computeLayout(plottitle, xlabel, ylabel)'
           },
           generalTraceLayout: {
             type: Object,
@@ -483,13 +570,17 @@
           annotationsLayout: {
             type: Object,
             computed: 'computeAnnotationsLayout()'
+          },
+          debug: {
+            type: Boolean,
+            value: false
           }
         };
       }
       computeStyleString(width, height) {
         return "width:"+width+"; height:"+height+";"
       }
-      computeLayout(plottitle, xlabel, ylabel, ylabelmin, ylabelmax) {
+      computeLayout(plottitle, xlabel, ylabel) {
         return {
           showlegend: false,
           title: plottitle,
@@ -507,7 +598,6 @@
             }
           },
           yaxis: {
-            range: [ylabelmin,ylabelmax],
             title: ylabel,
             showgrid: true,
             zeroline: true,
@@ -523,6 +613,9 @@
       computeGeneralTraceLayout() {
         return {
                   mode: 'markers',
+                  text: [],
+                  x: [],
+                  y: [],
                   marker: {
                     size:8,
                     symbol: ['circle']
@@ -530,12 +623,18 @@
                   hoverinfo: 'text',
                   type: 'scatter',
                   error_x: {
+                    array: [],
+                    arrayminus: [],
+                    symmetric: false,
                     type: 'data',
                     visible: true,
                     width: 0,
                     thickness : 1
                   },
                   error_y: {
+                    array: [],
+                    arrayminus: [],
+                    symmetric: false,
                     type: 'data',
                     visible: true,
                     width: 0,
@@ -562,59 +661,42 @@
               }
       }
 
-      addPoint(text, x, y, err_x, err_y, addUpperLimit, pointClass) {
-        console.log("new point",x+","+y);
+      setYlimits(ymin, ymax) {
+        this.layout.yaxis["range"] = [ymin - (ymin*10/100),ymax + (ymax*10/100)];
+      }
+
+      addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
+        var t0 = performance.now();
+
+        // increment global counter
         this.countData += 1;
+
+        // save the container in which the point is pushed to
         this.dataHistory.push(pointClass);
 
-      /*  if(this.y_data.length >= this.slidingwindowsize) {
-          var offset = this.y_data.length - this.slidingwindowsize;
-          for(var i=0; i <= offset; i++){
-            this.text_data.shift();
-            this.x_data.shift();
-            this.y_data.shift();
-            this.error_x_data.shift();
-            this.error_y_data.shift();
-          }
-        }
+        // push the point into the container
+        this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
 
-        this.text_data.push(text);
-        this.x_data.push(x);
-        this.y_data.push(y);
-        this.error_x_data.push(err_x);
-        this.error_y_data.push(err_y);
-        */
-        this.dataArrays[pointClass].feed(text, x, y, err_x, err_y);
-
-
+        ////////////////////////////////////////////////////////////////////////
+        // Sliding Window for points
         var totalPointsOnWindow = this.getTotalPoints();
+
         if(totalPointsOnWindow > this.slidingwindowsize)
         {
-            var offset = totalPointsOnWindow - this.slidingwindowsize;
-            for(var i=0; i < offset; i++)
+            var numberOfPointsToRemove = totalPointsOnWindow - this.slidingwindowsize;
+
+            // removing points from the containers with a last-in first-out politic
+            for(var i=0; i < numberOfPointsToRemove; i++)
             {
-              var container = this.dataHistory.shift(); // take the history...last in first out
-              this.dataArrays[container].shiftDataArrays(1);
+              var removeFromContainerId = this.dataHistory.shift(); // get first (oldest) container
+              this.dataArrays[removeFromContainerId].shiftDataArrays(1);
             }
         }
+        ////////////////////////////////////////////////////////////////////////
 
+
+        // update the counter of the number of points on the plot
         this.countDataOnPlot = this.getTotalPoints();
-
-/*
-        var _text_data = Array.from(this.text_data);
-        var _x_data = Array.from(this.x_data);
-        var _y_data = Array.from(this.y_data);
-        var _err_x_data = Array.from(this.error_x_data);
-        var _err_y_data = Array.from(this.error_y_data);
-
-        this.generalTraceLayout["text"] = _text_data;
-        this.generalTraceLayout["x"] = _x_data;
-        this.generalTraceLayout["y"] = _y_data;
-        this.generalTraceLayout["error_x"]["array"] = _err_x_data;
-        this.generalTraceLayout["error_y"]["array"] = _err_y_data;
-*/
-
-
 
 
         ////////////////////////////////////////////////////////////////////////
@@ -632,7 +714,11 @@
           annotation["showarrow"] = false;
         }
         this.annotations.push(annotation);
+        ////////////////////////////////////////////////////////////////////////
 
+
+        ////////////////////////////////////////////////////////////////////////
+        // Sliding Window for annotations
         if(this.annotations.length > this.slidingwindowsize)
         {
           var offset = this.annotations.length - this.slidingwindowsize;
@@ -643,32 +729,66 @@
         }
         var _annotations = Array.from(this.annotations);
         this.layout["annotations"] = _annotations;
+        ////////////////////////////////////////////////////////////////////////
 
 
+
+        ////////////////////////////////////////////////////////////////////////
+        // Get Plotly trace objects
         var traces = [];
         for(var i = 0; i < this.classesnumber; i++)
         {
           var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
-          //console.log(trace);
           traces.push(trace);
         }
+        ////////////////////////////////////////////////////////////////////////
 
+        console.log(traces[pointClass]);
 
-    //      console.log(traces);
         ////////////////////////////////////////////////////////////////////////
         // Update plot
         Plotly.react(this.getPlot(), traces, this.layout);
-      //  Plotly.react(this.getPlot(), [this.generalTraceLayout], this.layout);
+        //https://codepen.io/etpinard/pen/QdZoQd
+        //Plotly.extendTraces(this.getPlot(), {y: [[rand()], [rand()]]}, [0, 1])
+        ////////////////////////////////////////////////////////////////////////
+
+        var t1 = performance.now();
+        this.performanceTime = ((t1 - t0)/1000).toFixed(5);
+        if(this.debug)
+        {
+          Plotly.extendTraces(this.getPerformancePlot(), {
+            x: [[this.countData]],
+            y: [[this.performanceTime]],
+            text: [[this.countDataOnPlot]]
+          }, [0])
+        }
       }
 
 
 
       increaseSlidingWindowSize() {
-        this.slidingwindowsize += 1;
+        if( this.slidingwindowsize < this.slidingwindowmaxsize)
+        {
+          this.slidingwindowsize += 1;
+          //this.initPerformancePlot(false);
+        }
       }
+
       decreaseSlidingWindowSize() {
-        if(this.slidingwindowsize > 1)
+        if(this.slidingwindowsize > this.slidingwindowminsize)
+        {
           this.slidingwindowsize -= 1;
+          //this.initPerformancePlot(false);
+        }
+      }
+
+      setMaxSlidingWindowSize() {
+        this.slidingwindowsize = this.slidingwindowmaxsize;
+        //this.initPerformancePlot(false);
+      }
+      setMinSlidingWindowSize() {
+        this.slidingwindowsize = this.slidingwindowminsize;
+        //this.initPerformancePlot(false);
       }
 
     }

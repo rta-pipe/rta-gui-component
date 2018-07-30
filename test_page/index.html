@@ -13,31 +13,63 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
+    <!--
+    For a Boolean property to be configurable from markup, it must default to false. If it defaults to true,
+    you cannot set it to false from markup, since the presence of the attribute, with or without a value,
+    equates to true. This is the standard behavior for attributes in the web platform.
+    If this behavior doesn't fit your use case, you can use a string-valued or number-valued attribute instead.
+
+    For object and array properties you can pass an object or array in JSON format:
+    <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
+
+
+    -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
   </head>
   <body>
-    <div class="container">
+    <div class="container-fluid">
       <h1>RTA-GUI-Components Testpage</h1>
-        <div class="container">
+        <div class="container-fluid">
           <p id="dt"></p>
-          <button class="btn btn-success" onclick="changeDataRate(-1)">Decrease sleep between data generation</button>
-          <button class="btn btn-success" onclick="changeDataRate(1)">Increase sleep between data generation</button>
-          <button class="btn btn-danger" id="stopDataGen" onclick="stopGeneratingData()">Stop data generation</button>
+          <table class="table" id="startbuttons">
+            <tr>
+              <td>
+                <button class="btn btn-warning" id="loadData1" onclick="loadRealData('/static/light_curve.txt')">Load light_curve.txt</button>
+                <button class="btn btn-warning" id="loadData2" onclick="loadRealData('/static/lc1_ff1gifixed_run14.txt')">Load lc1_ff1gifixed_run14.txt</button>
+                <br>
+                <button class="btn btn-success" id="startRealData" onclick="startGeneratingData('real')">Start feed real data</button>
+              </td>
+              <td>
+                <button class="btn btn-success" id="startRandomData" onclick="startGeneratingData('random')">Start feed random data</button>
+              </td>
+              <td>
+                <button class="btn btn-danger" id="startRandomData" onclick="resetPlot()">Reset plot</button>
+              </td>
+            </tr>
+          </table>
+          <br>
+          <button class="btn btn-warn" id="decrDTreal" onclick="changeDataRate(-1,'real')">Decrease sleep between data generation</button>
+          <button class="btn btn-warn" id="incrDTreal" onclick="changeDataRate(1,'real')">Increase sleep between data generation</button>
+          <br>
+          <button class="btn btn-warn" id="decrDTrandom" onclick="changeDataRate(-1,'random')">Decrease sleep between data generation</button>
+          <button class="btn btn-warn" id="incrDTrandom" onclick="changeDataRate(1,'random')">Increase sleep between data generation</button>
+          <br>
+          <button class="btn btn-danger" id="stopData" onclick="stopGeneratingData()" hidden>Stop feed data</button>
         </div>
 
-        <br>
-        <hr>
-        <br>
-        <div class="container">
-          <light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Very sexy light curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5></light-curve>
+        <div class="container-fluid">
+          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Very sexy light curve" xLabel="MJD [days]" classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
           <button class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</button>
           <button class="btn btn-danger" onclick="decreaseSlidingWindowSize()">Decrease window size</button>
+          <button class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</button>
+          <button class="btn btn-warning" onclick="setMinSlidingWindowSize()">Min window size</button>
         </div>
 
         <br>
         <hr>
         <br>
-        <div class="container">
+        <div class="container-fluid">
 
 
 
@@ -47,10 +79,10 @@
 
     <script>
 
-    var interval;
-    var intervalTime = 2000;
-    var count = 0;
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Randomness
+    var count = 0;
     function flipCoin() {
       if(Math.random()>0.5)
         return true;
@@ -64,50 +96,256 @@
         text += possible.charAt(Math.floor(Math.random() * possible.length));
       return text;
     }
+    function generateRndIntensity() {
+      var rnd = Math.floor(Math.random() * 10);
+      return rnd;
+    }
+    function getIntensityClassForRandomData(rnd) {
+      // decide class
+      var pointClass;
+      if(rnd <= 3)
+        pointClass = 0; //2
+      else if(rnd > 3 && rnd <=6)
+        pointClass = 1; // 1
+      else
+        pointClass = 2;
 
+      return pointClass;
+    }
+    function getRandomError(){
+      return Math.floor(Math.random() * 3);
+    }
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Real data
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Utilities
+
+    var x_for_random;
+
+    var realData = [];
+    var index_for_real_data;
+
+    var interval;
+    var intervalTime = 1000;
+
+    function startGeneratingData(mode) {
+      $("#startbuttons").hide();
+      //$("#startRandomData").hide();
+
+      if(mode == 'real')
+      {
+        index_for_real_data = 0;
+        $("#decrDTreal").show();
+        $("#incrDTreal").show();
+      }
+      else if (mode == 'random')
+      {
+        document.querySelector('#lightCurveWebcomp').setYlimits(0,9);
+        x_for_random = 0;
+        $("#decrDTrandom").show();
+        $("#incrDTrandom").show();
+      }
+      $("#stopData").show();
+
+
+
+      interval = setInterval(function(){
+
+        if( mode == "random" )
+        {
+          console.log("Random data gen");
+
+          var randomIntensity = generateRndIntensity();
+          var intensityClass = getIntensityClassForRandomData(randomIntensity);
+          var rndError = getRandomError();
+          x_for_random = x_for_random + 5;
+
+
+
+          document.querySelector('#lightCurveWebcomp').addPoint(
+                                                        generateRndText(),
+                                                        x_for_random,
+                                                        randomIntensity,
+                                                        rndError,
+                                                        rndError,
+                                                        rndError,
+                                                        rndError,
+                                                        flipCoin(),
+                                                        intensityClass
+                                                      );
+        }
+        else if( mode == 'real' )
+        {
+          console.log("New real data: ",realData[index_for_real_data] );
+
+          if(realData.length == 0)
+            console.log("Error: realData list is empty");
+
+            document.querySelector('#lightCurveWebcomp').addPoint(
+                                                          realData[index_for_real_data].text,
+                                                          realData[index_for_real_data].x,
+                                                          realData[index_for_real_data].y,
+                                                          realData[index_for_real_data].error_x,
+                                                          realData[index_for_real_data].error_x,
+                                                          realData[index_for_real_data].error_y,
+                                                          realData[index_for_real_data].error_y,
+                                                          realData[index_for_real_data].isUpperLimit,
+                                                          realData[index_for_real_data].class
+                                                        );
+            index_for_real_data += 1;
+
+
+        }
+          }, intervalTime);
+    }
     function stopGeneratingData() {
+      $("#startbuttons").show();
+      //$("#startRandomData").show();
+      $("#decrDTreal").hide();
+      $("#incrDTreal").hide();
+      $("#decrDTrandom").hide();
+      $("#incrDTrandom").hide();
+      $("#stopData").hide();
+
+      $("#startRealData").hide();
+      $("#loadData1").show();
+      $("#loadData2").show();
+
       clearInterval(interval);
     }
-    function startGeneratingData() {
-      interval = setInterval(function(){
-        var rnd = Math.floor(Math.random() * 10);
-        var pointClass;
-        if(rnd <= 3)
-          pointClass = 2;
-        else if(rnd > 3 && rnd <=6)
-          pointClass = 1;
-        else
-          pointClass = 0;
-        document.querySelector('#lightCurveWebcomp').addPoint(generateRndText(), count, rnd, Math.floor(Math.random() * 2), Math.floor(Math.random() * 2), flipCoin(), pointClass);
-        count += 5;
-      }, intervalTime);
-      $('#dt').text("Sleep: "+intervalTime+" ms");
-    }
-    function changeDataRate(offset) {
-
+    function changeDataRate(offset,mode) {
       stopGeneratingData();
-
       if(offset<0 && intervalTime>200)
         intervalTime = intervalTime - 200;
 
       if(offset>0 && intervalTime<4000)
         intervalTime = intervalTime + 200;
 
-      startGeneratingData();
+      $('#dt').text("Sleep: "+intervalTime+" ms");
+
+      startGeneratingData(mode);
 
     }
+    function resetPlot() {
+      document.querySelector('#lightCurveWebcomp').resetPlot();
+    }
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // data loading..
+    function loadRealData(filepath) {
+      $("#startRealData").show();
+
+      console.log("Loading ",filepath);
+      // parse the file
+      $.get(filepath, function(result) {
+
+          var rows = result.split("\n");
+          rows.shift();
+          console.log("Got real data. Number of records: ", rows.length);
+
+          for(var i = 0; i < rows.length; i++){
+
+            if( (rows[i].trim()).length > 0 ){
+
+
+              var elements = rows[i].split(" ");
+              var json_elements = {};
+
+              // text
+              json_elements["text"] = elements[6]+elements[1]+elements[2];
+
+              // x
+              json_elements["x"] = parseXValue(elements[6]);
+
+              // y
+              if(elements[0] <= 2.9)
+              {
+                json_elements["y"] = parseFloat(elements[11]);
+                json_elements["isUpperLimit"] = true;
+              }
+              else
+              {
+                json_elements["y"] = parseFloat(elements[9]);
+                json_elements["isUpperLimit"] = false;
+              }
+
+              // errors
+              json_elements["error_x"] = 0.5;
+              json_elements["error_y"] = parseFloat(elements[10]);
+
+              // class
+              var tsRadix = parseFloat(elements[0]);
+              if(tsRadix <= 2.9)
+                json_elements["class"] = 0;
+              else if(tsRadix > 2.9 && tsRadix < 4)
+                json_elements["class"] = 1;
+              else if(tsRadix > 4 && tsRadix <= 5)
+                json_elements["class"] = 2;
+              else if(tsRadix > 5)
+                json_elements["class"] = 3;
+              else
+                console.log("Error. cant assign class. sqrtts : ",elements[0]);
+
+              realData.push(json_elements);
+            }
+            else
+            {
+              console.log("Empty row found!");
+            }
+          }
+      });
+    }
+
+    function parseXValue(xString){
+      var times = xString.split("/");
+      return (parseFloat(times[0])+parseFloat(times[1]))/2;
+    }
+
 
     $('document').ready(function() {
-      startGeneratingData();
+      $("#startRealData").hide();
+
+      $("#decrDTreal").hide();
+      $("#incrDTreal").hide();
+      $("#decrDTrandom").hide();
+      $("#incrDTrandom").hide();
+      $("#stopData").hide();
+
+
 
     });
 
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // light-curve API
     function increaseSlidingWindowSize() {
       document.querySelector('#lightCurveWebcomp').increaseSlidingWindowSize();
     }
     function decreaseSlidingWindowSize() {
       document.querySelector('#lightCurveWebcomp').decreaseSlidingWindowSize();
     }
+    function setMaxSlidingWindowSize() {
+      document.querySelector('#lightCurveWebcomp').setMaxSlidingWindowSize();
+    }
+    function setMinSlidingWindowSize() {
+      document.querySelector('#lightCurveWebcomp').setMinSlidingWindowSize();
+    }
+    ////////////////////////////////////////////////////////////////////////////
     </script>
   </body>
 </html>
