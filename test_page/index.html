@@ -6,8 +6,14 @@
 
     <title>RTA-GUI-Components DEMO</title>
 
-    <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="/bower_components/webcomponentsjs/webcomponents-loader.js" shadydom></script>
+
+    <!-- web components -->
     <link rel="import" href="/components/light-curve.html">
+    <link rel="import" href="/components/spectral-light-curve.html">
+
+
+    <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <!-- Latest compiled and minified CSS -->
@@ -21,17 +27,41 @@
 
     For object and array properties you can pass an object or array in JSON format:
     <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
+  -->
 
 
-    -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
+    <!-- MathJax configuration -->
+    <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+    <script type="text/javascript">
+      // window.MathJax = {
+      //   tex2jax: {
+      //     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      //     processEscapes: true
+      //   }
+      // };
+      MathJax.Hub.Config({
+        //extensions: ["tex2jax.js"],
+        //jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+          //displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+          processEscapes: true
+        }//,
+        //"HTML-CSS": { fonts: ["TeX"] }
+      });
+    </script>
+
+<!-- /var/www/html/spot6/cat2/js/MathJax -->
+
+
+
 
   </head>
   <body>
     <div class="container-fluid">
       <h1>RTA-GUI-Components Testpage</h1>
         <div class="container-fluid">
-          <p id="dt"></p>
           <table class="table" id="startbuttons">
             <tr>
               <td>
@@ -57,9 +87,18 @@
           <br>
           <button class="btn btn-danger" id="stopData" onclick="stopGeneratingData()" hidden>Stop feed data</button>
         </div>
+        <div>
+          <p id="dt"></p>
+          <p>
+          \[
+          \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+          \]
+          </p>
+        <div>
 
         <div class="container-fluid">
-          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Very sexy light curve" xLabel="MJD [days]" classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
+          <h2>light-curve</h2>
+          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
           <button class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</button>
           <button class="btn btn-danger" onclick="decreaseSlidingWindowSize()">Decrease window size</button>
           <button class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</button>
@@ -70,14 +109,15 @@
         <hr>
         <br>
         <div class="container-fluid">
-
-
-
+          <h2>spectral-light-curve</h2>
+          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></light-curve>
         </div>
     </div>
 
 
     <script>
+
+
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -116,14 +156,6 @@
       return Math.floor(Math.random() * 3);
     }
     ////////////////////////////////////////////////////////////////////////////
-
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Real data
-
-
-    ////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -231,7 +263,7 @@
       if(offset>0 && intervalTime<4000)
         intervalTime = intervalTime + 200;
 
-      $('#dt').text("Sleep: "+intervalTime+" ms");
+      $('#dt').text("Sleep time: "+intervalTime+" ms");
 
       startGeneratingData(mode);
 
@@ -324,7 +356,9 @@
       $("#incrDTrandom").hide();
       $("#stopData").hide();
 
-
+      document.querySelector('#lightCurveWebcomp').setPlotLabels("Light curve!!", "MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
+      $('#dt').text("Sleep time: 1000 ms");
+      $('#dt').css("font-size", "16px");
 
     });
 

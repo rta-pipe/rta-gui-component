@@ -3,7 +3,8 @@
   "description": "This element will display the light-curve plot",
   "main": "light-curve.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^2.0.0"
+    "polymer": "Polymer/polymer#^2.0.0",
+    "MathJax": "^2.7.5"
   },
   "devDependencies": {
     "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
