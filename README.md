@@ -32,9 +32,10 @@ In order to test the Polymer components, an Express (Node.js) server has been se
 
 ## \<light-curve\>
 
+### Description
 This element will display the light-curve plot. The light curve plot show the intensity of an astrophysical source with respect to time. Each point has a vertical and horizontal error bar or it can have an upper limit (an arrow facing down). The points can have different colors, depending on their class.
 
-Configurations:
+### Static Configurations
 * height and width of the plot
 * title and axis labels
 * number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
@@ -47,14 +48,35 @@ Example
 
 \<light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Light Curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5 debug=true\>\<\/light-curve\>
 
-Interface:
+### API
+* setPlotTitle(title);
+* setAxisLabels(xLabel, yLabel);
 * setYlimits(ymin, ymax); //(this interval will be stretched of another 20%)
 * addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
+* addLine(x0,y0,x1,y1,color,width,dashType);
+  * dashType: sets the dash style of lines. Set to a dash type string ("solid", "dot", "dash", "longdash", "dashdot", or "longdashdot") or a dash length list in px (eg "5px,10px,2px,2px").
 * resetPlot();
 
+### Issues
+* Performance decreases as the number of points to display increases. Possibile fixes: using extendTraces, grouping points in packets.
+* Can't pass MathJax string as an attribute value (e.g. <light-curve yLabel="$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$"></light-curve>)
 
 
 ## \<spectral-light-curve\>
+### Description
+### Configurations
+* height and width of the plot
+* title and axis labels
+* number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
+* Debug mode: display informations and a performance plot
+### API
+* setPlotTitle(title);
+* setAxisLabels(xLabel, yLabel);
+* setAxisTickText(xTickText, yTickText);
+* addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
+* resetPlot();
+
+### Issues
 
 
 ## \<histogram\>
@@ -69,37 +91,9 @@ npm install polymer-cli
 npm install bower
 bower install --save Polymer/polymer#^2.0.0
 
-## Creating a new element
+## Info
+* Out of the box plotly does not work with the Polymer's shadow dom. This is due to the way it adds styles to the main document. If each template includes the appropriate styles plotly works fine. A style module was created (https://www.polymer-project.org/2.0/docs/devguide/style-shadow-dom) and each component imports it with: <style include="plotly-style"></style>.
 
-* mkdir new-elem
-* cd mew-elem
-* ./../node_modules/polymer-cli/bin/polymer.js init
-
-Choose polymer-2-element and add an optional description. At this point, Polymer CLI generates files and directories for your element, and installs your project's dependencies. If the installing of the project's dependencies fails, run manually:
-
-* ./../node_modules/bower/bin/bower install
-
-Polymer init script will also create a README.md and a .gitignore files. Delete them. Modify the import scripts, inserting the bower_components directory in the paths (BUG CLI).
-
-Now start the server with:
-
-* ./../node_modules/polymer-cli/bin/polymer.js serve
-
-Other active and unclosed polymer sessions can be shown with ps -x and kill with kill -9 -id_session.
-If you are using a remote ssh connection, a ssh-tunnel is needed to connect with a browser:
-
-* ssh -N -L 8500:localhost:8081 cta@agilepipedev.iasfbo.inaf.it
-
-
-## Element directory
-After the initialization process Polymer CLI generates the following files and directories:
-
-* bower.json. Configuration file for Bower.
-* bower_components/. Project dependencies. See Manage dependencies.
-* demo/index.html. Demo of new-elem.html.
-* index.html. Automatically-generated API reference. (not yet supported)
-* new-elem.html. Element source code.
-* test/new-elem_test.html. Unit tests for the element.
 
 ## Install external dependency
 Run the following command in the element's directory:

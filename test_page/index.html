@@ -31,26 +31,26 @@
 
 
 
-    <!-- MathJax configuration -->
+    <!-- MathJax configuration
     <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
     <script type="text/javascript">
-      // window.MathJax = {
-      //   tex2jax: {
-      //     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-      //     processEscapes: true
-      //   }
-      // };
-      MathJax.Hub.Config({
-        //extensions: ["tex2jax.js"],
-        //jax: ["input/TeX", "output/HTML-CSS"],
+      window.MathJax = {
         tex2jax: {
           inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-          //displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
           processEscapes: true
-        }//,
+        }
+      };
+      //MathJax.Hub.Config({
+        //extensions: ["tex2jax.js"],
+        //jax: ["input/TeX", "output/HTML-CSS"],
+        //tex2jax: {
+          //inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+          //displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+          //processEscapes: true
+        //}//,
         //"HTML-CSS": { fonts: ["TeX"] }
-      });
-    </script>
+      //});
+    </script> -->
 
 <!-- /var/www/html/spot6/cat2/js/MathJax -->
 
@@ -61,57 +61,85 @@
   <body>
     <div class="container-fluid">
       <h1>RTA-GUI-Components Testpage</h1>
-        <div class="container-fluid">
-          <table class="table" id="startbuttons">
-            <tr>
-              <td>
-                <button class="btn btn-warning" id="loadData1" onclick="loadRealData('/static/light_curve.txt')">Load light_curve.txt</button>
-                <button class="btn btn-warning" id="loadData2" onclick="loadRealData('/static/lc1_ff1gifixed_run14.txt')">Load lc1_ff1gifixed_run14.txt</button>
-                <br>
-                <button class="btn btn-success" id="startRealData" onclick="startGeneratingData('real')">Start feed real data</button>
-              </td>
-              <td>
-                <button class="btn btn-success" id="startRandomData" onclick="startGeneratingData('random')">Start feed random data</button>
-              </td>
-              <td>
-                <button class="btn btn-danger" id="startRandomData" onclick="resetPlot()">Reset plot</button>
-              </td>
-            </tr>
-          </table>
-          <br>
-          <button class="btn btn-warn" id="decrDTreal" onclick="changeDataRate(-1,'real')">Decrease sleep between data generation</button>
-          <button class="btn btn-warn" id="incrDTreal" onclick="changeDataRate(1,'real')">Increase sleep between data generation</button>
-          <br>
-          <button class="btn btn-warn" id="decrDTrandom" onclick="changeDataRate(-1,'random')">Decrease sleep between data generation</button>
-          <button class="btn btn-warn" id="incrDTrandom" onclick="changeDataRate(1,'random')">Increase sleep between data generation</button>
-          <br>
-          <button class="btn btn-danger" id="stopData" onclick="stopGeneratingData()" hidden>Stop feed data</button>
+        <div class="container-fluid" id="startbuttons">
+          <div class="btn-group btn-group-justified">
+            <a href="#" id="loadData1"       class="btn btn-primary"  onclick="loadRealData('/static/light_curve.txt')">Load light_curve.txt</a>
+            <a href="#" id="loadData2"       class="btn btn-primary"  onclick="loadRealData('/static/lc1_ff1gifixed_run14.txt')">Load lc1_ff1gifixed_run14.txt</a>
+            <a href="#" id="startRealData"   class="btn btn-success"  onclick="startGeneratingData('real')">Start feed real data</a>
+            <a href="#" id="startRandomData" class="btn btn-success"  onclick="startGeneratingData('random')">Start feed random data</a>
+            <a href="#" id="resetPlot"       class="btn btn-danger"   onclick="resetPlot()">Reset plot</a>
+          </div>
         </div>
+
+        <br>
+        <div class="container-fluid" id="confButtons">
+          <div class="btn-group btn-group-justified">
+            <a href="#" id="decrDTreal"   class="btn btn-warning"  onclick="changeDataRate(-1)">Decrease sleep between data generation</a>
+            <a href="#" id="incrDTreal"   class="btn btn-warning"  onclick="changeDataRate(1)">Increase sleep between data generation</a>
+            <a href="#" id="stopData"     class="btn btn-danger"   onclick="stopGeneratingData()" hidden>Stop feed data</a>
+          </div>
+        </div>
+
+        <br>
         <div>
-          <p id="dt"></p>
-          <p>
-          \[
-          \frac{-b\pm\sqrt{b^2-4ac}}{2a}
-          \]
-          </p>
+          Sleep time: <p id="dt"></p>
         <div>
 
-        <div class="container-fluid">
+        <br>
+        <nav class="navbar navbar-default">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="#">Components</a>
+            </div>
+            <ul class="nav navbar-nav">
+              <li><a href="#" onclick="showComponent('navBarLCshow')">Light curve</a></li>
+              <li><a href="#" onclick="showComponent('navBarSLCshow')">Spectral Light Curve</a></li>
+              <li><a href="#" onclick="showComponent('navBarHISTshow')">Histogram</a></li>
+            </ul>
+          </div>
+        </nav>
+
+        <!-- LIGHT CURVE -->
+
+        <div class="container-fluid" id="navBarLCshow">
           <h2>light-curve</h2>
+            <div class="btn-group btn-group-justified">
+              <a href="#" class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</a>
+              <a href="#" class="btn btn-success" onclick="decreaseSlidingWindowSize()">Decrease window size</a>
+              <a href="#" class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</a>
+              <a href="#" class="btn btn-warning" onclick="setMinSlidingWindowSize()">Min window size</a>
+            </div>
           <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
-          <button class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</button>
-          <button class="btn btn-danger" onclick="decreaseSlidingWindowSize()">Decrease window size</button>
-          <button class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</button>
-          <button class="btn btn-warning" onclick="setMinSlidingWindowSize()">Min window size</button>
         </div>
 
-        <br>
-        <hr>
-        <br>
-        <div class="container-fluid">
+        <!-- SPECTRAL LIGHT CURVE -->
+
+        <div class="container-fluid" id="navBarSLCshow">
           <h2>spectral-light-curve</h2>
-          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></light-curve>
+          <spectral-light-curve id="spectralLightCurveWebcomp" width="1800px" height="800px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></spectral-light-curve>
         </div>
+
+      
+
+        <!-- TODO HISTOGRAM -->
+
+
+
+    </div>
+
+
+
+
+
+    <div style="border: 25px solid green;padding: 25px;margin: 25px;">
+      Math Jax Test:
+      <p id="mathJaxTest">
+      </p>
+      <p>
+        \[
+        \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+        \]
+      </p>
     </div>
 
 
@@ -160,40 +188,43 @@
 
 
     ////////////////////////////////////////////////////////////////////////////
-    // Utilities
+    // Generating data
+    var dataGenMode = null;
 
     var x_for_random;
 
     var realData = [];
     var index_for_real_data;
+    var fluxMin = 100000;
+    var fluxMax = 0;
 
     var interval;
     var intervalTime = 1000;
 
     function startGeneratingData(mode) {
       $("#startbuttons").hide();
-      //$("#startRandomData").hide();
+      $("#confButtons").show();
 
       if(mode == 'real')
       {
+        dataGenMode = mode;
         index_for_real_data = 0;
-        $("#decrDTreal").show();
-        $("#incrDTreal").show();
+        document.querySelector('#lightCurveWebcomp').setYlimits(fluxMin,fluxMax);
       }
       else if (mode == 'random')
       {
-        document.querySelector('#lightCurveWebcomp').setYlimits(0,9);
+        dataGenMode = mode;
         x_for_random = 0;
-        $("#decrDTrandom").show();
-        $("#incrDTrandom").show();
+        document.querySelector('#lightCurveWebcomp').setYlimits(0,9);
       }
-      $("#stopData").show();
-
-
-
+      else
+      {
+        console.log("Error, mode??",mode);
+        return;
+      }
       interval = setInterval(function(){
 
-        if( mode == "random" )
+        if( mode == 'random' )
         {
           console.log("Random data gen");
 
@@ -235,27 +266,27 @@
                                                           realData[index_for_real_data].class
                                                         );
             index_for_real_data += 1;
+            if(index_for_real_data == realData.length)
+              stopGeneratingData();
 
 
         }
-          }, intervalTime);
+      }, intervalTime);
     }
     function stopGeneratingData() {
       $("#startbuttons").show();
       //$("#startRandomData").show();
-      $("#decrDTreal").hide();
-      $("#incrDTreal").hide();
-      $("#decrDTrandom").hide();
-      $("#incrDTrandom").hide();
-      $("#stopData").hide();
+      $("#confButtons").hide();
 
-      $("#startRealData").hide();
-      $("#loadData1").show();
-      $("#loadData2").show();
 
       clearInterval(interval);
     }
-    function changeDataRate(offset,mode) {
+    function changeDataRate(offset) {
+      if(dataGenMode==null){
+        console.log("Error dataGenMode=Null")
+        return;
+      }
+
       stopGeneratingData();
       if(offset<0 && intervalTime>200)
         intervalTime = intervalTime - 200;
@@ -263,20 +294,21 @@
       if(offset>0 && intervalTime<4000)
         intervalTime = intervalTime + 200;
 
-      $('#dt').text("Sleep time: "+intervalTime+" ms");
+      $('#dt').text(intervalTime+" ms");
 
-      startGeneratingData(mode);
+      startGeneratingData(dataGenMode);
 
     }
     function resetPlot() {
       document.querySelector('#lightCurveWebcomp').resetPlot();
+      dataGenMode = null;
     }
     ////////////////////////////////////////////////////////////////////////////
 
 
 
     ///////////////////////////////////////////////////////////////////////////
-    // data loading..
+    // real data loading..
     function loadRealData(filepath) {
       $("#startRealData").show();
 
@@ -338,6 +370,17 @@
               console.log("Empty row found!");
             }
           }
+
+          // find min and max flux:
+          for(var i = 0; i < realData.length; i++){
+            if(realData[i]["y"] > fluxMax) {
+              fluxMax = realData[i]["y"];
+            }
+            if(realData[i]["y"] < fluxMin) {
+              fluxMin = realData[i]["y"];
+            }
+          }
+          console.log("flux max and min:", fluxMax, fluxMin)
       });
     }
 
@@ -347,18 +390,58 @@
     }
 
 
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Navigation Bar
+    var navbarButtons = ["navBarLCshow","navBarSLCshow","navBarHISTshow"];
+    function showComponent(compId) {
+      navbarButtons.forEach(function(cId, index){
+        if(cId==compId)
+          $("#"+cId).show();
+        else
+          $("#"+cId).hide();
+      })
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    // ON READY
+
     $('document').ready(function() {
+
       $("#startRealData").hide();
 
-      $("#decrDTreal").hide();
-      $("#incrDTreal").hide();
-      $("#decrDTrandom").hide();
-      $("#incrDTrandom").hide();
-      $("#stopData").hide();
+      $("#confButtons").hide();
 
-      document.querySelector('#lightCurveWebcomp').setPlotLabels("Light curve!!", "MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
-      $('#dt').text("Sleep time: 1000 ms");
-      $('#dt').css("font-size", "16px");
+      showComponent("navBarLCshow");
+
+      document.querySelector('#lightCurveWebcomp').setPlotTitle("Light curve");
+      document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
+
+      document.querySelector('#lightCurveWebcomp').addLine(500000,100,0,100,"rgb(50, 171, 96)",2,"dashdot");
+
+      document.querySelector('#spectralLightCurveWebcomp').setPlotTitle("Spectral Light curve");
+      document.querySelector('#spectralLightCurveWebcomp').setAxisLalbes("Energy [MeV]","$\\text{erg}\\text{cm}^{-2}\\text{s}^{-1}$");
+
+      document.querySelector('#spectralLightCurveWebcomp').setAxisTickText(
+                                                                    [ "$10^{1}$","","","","","","","","",
+                                                                      "$10^{2}$","","","","","","","","",
+                                                                      "$10^{3}$","","","","","","","","",
+                                                                      "$10^{4}$","","","","",""],
+                                                                    [ "$10^{-13}$","","","","","","","","",
+                                                                      "$10^{-12}$","","","","","","","","",
+                                                                      "$10^{-11}$","","","","","","","","",
+                                                                      "$10^{-10}$","","","","","","","","",
+                                                                      "$10^{-9}$","","","","","","","","",
+                                                                      "$10^{-8}$","","","","","","","","",
+                                                                      "$10^{-7}$","","","","","","","","",
+                                                                      "$10^{-6}$","","","","","","","","",
+                                                                      "$10^{-5}$","","","","","","","",""]);
+
+      $('#dt').text(" 1000 ms");
+      $('#dt').css("font-size", "16px"); // to fix
+
+      $('#mathJaxTest').text("$10^{-13}$");
 
     });
 

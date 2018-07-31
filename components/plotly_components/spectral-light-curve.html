@@ -1,44 +1,34 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <!--<link rel="import" href="../plotly.js/polymer-element.html">-->
-<link rel="import" href="/styles/plotly-style.html">
-
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <!--<link rel="import" href = "/imports/mathJax-import.html">-->
 
-<dom-module id="light-curve">
+
+<dom-module id="spectral-light-curve">
   <template>
     <style include="plotly-style"></style>
-
-    <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
-
     <table hidden$="[[!debug]]">
       <tr>
         <td>
           <div>
-            <p>Window size: [[slidingwindowsize]]</p>
-            <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
             <p>Points on plot: [[countDataOnPlot]]</p>
             <!--<p>Points plotted: [[countData]]</p>-->
             <p>Classes number: [[classesnumber]]</p>
             <p>Time taken to add the LAST point: [[performanceTime]]s </p>
           </div>
         </td>
-        <td>
-          <div id="perf-graph" style="width: 480px; height: 400px;"></div>
-        </td>
       </tr>
     </table>
 
 
 
+    <div id="spectral-light-curve-div" style="{{stylestring}}"></div>
 
 
   </template>
 
   <script>
-
-  console.log(window)
 
   function TraceClass(className, color){
     this.className = className;
@@ -106,26 +96,25 @@
   }
 
     /**
-     * `light-curve`
-     * This element will display the light-curve plot
+     * `spectral-light-curve`
+     * This element will display the spectral-light-curve plot
      *
      * @customElement
      * @polymer
      * @demo demo/index.html
      */
-    class LightCurve extends Polymer.Element {
+    class SpectralLightCurve extends Polymer.Element {
 
       // private properties
       constructor() {
         super();
-        this.plotName = 'light-curve-div';
+        this.plotName = 'spectral-light-curve-div';
 
 
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
 
         this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
-        this.dataHistory = []; // remember in which container the data has been pushed each time
 
         this.annotations = []; // the annotations are independent from the classes
 
@@ -134,7 +123,7 @@
 
       // selector
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
-      getPerformancePlot() { return this.shadowRoot.querySelector("#perf-graph"); }
+
       // counts all the points of every container (TraceClass)
       getTotalPoints() {
         var sum = 0;
@@ -147,7 +136,7 @@
         if ( classesNumber == 1 )
           var colors = ["#04f2f2"];    // light blue
         else if( classesNumber == 2)
-          var colors = ["#04f2f2", "#f18a03"]; // light blue, orange
+          var colors = ["black", "red"];
         else if( classesNumber == 3)
           var colors = ["#04f2f2", "#f18a03", "#ef0000"]; // light blue, orange, red
         else if( classesNumber == 4)
@@ -162,21 +151,18 @@
 
       ready() {
         super.ready();
-
-        this.initLightCurvePlot();
-
-        this.initPerformancePlot(true);
+        this.initPlot();
       }
 
-      initLightCurvePlot() {
+      initPlot() {
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
         this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
-        this.dataHistory = []; // remember in which container the data has been pushed each time
         this.annotations = []; // the annotations are independent from the classes
         this.performanceTime = 0;
 
         this.layout["annotations"];
+
         ////////////////////////////////////////////////////////////////////////
         // Computing colors
         var colors = [];
@@ -208,25 +194,12 @@
 
       }
 
-      initPerformancePlot(isFirstLoad){
-        if(this.debug)
-        {
-          var initData = {  x: [], y: [], text: []  };
-          var layout = this.computeLayout("Performance (only points)", "", "Time for redraw [seconds]");
-          layout.yaxis["range"] = [0,1];
-          if(isFirstLoad)
-            Plotly.newPlot(this.getPerformancePlot(), [initData], layout);
-          else
-            Plotly.react(this.getPerformancePlot(), [initData], layout);
-        }
-      }
-
 
       //////////////////////////////////////////
       // PUBLIC API
       //////////////////////////////////////////
 
-      static get is() { return 'light-curve'; }
+      static get is() { return 'spectral-light-curve'; }
       static get properties() {
         return {
           elemName: {
@@ -256,18 +229,6 @@
           classesnumber: {
             type: Number,
             value: 2
-          },
-          slidingwindowsize: {
-            type: Number,
-            value: 100
-          },
-          slidingwindowmaxsize: {
-            type: Number,
-            value: 300
-          },
-          slidingwindowminsize: {
-            type: Number,
-            value: 1
           },
           stylestring: {
             type: String,
@@ -299,30 +260,27 @@
           showlegend: false,
           title: plottitle,
           xaxis: {
-            title: xlabel,
-            showgrid: true,
-            zeroline: true,
-            showline: true,
-            tickformat:"05.f",
-            tickangle:0,
-            titlefont: {
-              family: 'Courier New, monospace',
-              size: 18,
-              color: '#7f7f7f'
-            }
+            ticks:"inside",
+            tickvals:["10","20","30","40","50","60","70","80","90","100","200","300","400","500","600","700","800","900","1000","2000","3000","4000","5000","6000",
+            "7000","8000","9000","10000","20000","30000","40000","50000","60000"],
+            type: 'log',
+            linewidth:1,
+            title:"Energy [MeV]"
           },
           yaxis: {
-            title: ylabel,
-            showgrid: true,
-            zeroline: true,
-            showline: true,
-            titlefont: {
-              family: 'Courier New, monospace',
-              size: 18,
-              color: '#7f7f7f'
-            }
-          },
-          shapes: []
+            ticks:"inside",
+            tickvals:["0.0000000000001","0.0000000000002","0.0000000000003","0.0000000000004","0.0000000000005","0.0000000000006","0.0000000000007","0.0000000000008","0.0000000000009",
+            "0.000000000001","0.000000000002","0.000000000003","0.000000000004","0.000000000005","0.000000000006","0.000000000007","0.000000000008","0.000000000009",
+            "0.00000000001","0.00000000002","0.00000000003","0.00000000004","0.00000000005","0.00000000006","0.00000000007","0.00000000008","0.00000000009",
+            "0.0000000001","0.0000000002","0.0000000003","0.0000000004","0.0000000005","0.0000000006","0.0000000007","0.0000000008","0.0000000009",
+            "0.000000001","0.000000002","0.000000003","0.000000004","0.000000005","0.000000006","0.000000007","0.000000008","0.000000009",
+            "0.00000001","0.00000002","0.00000003","0.00000004","0.00000005","0.00000006","0.00000007","0.00000008","0.00000009",
+            "0.0000001","0.0000002","0.0000003","0.0000004","0.0000005","0.0000006","0.0000007","0.0000008","0.0000009",
+            "0.000001","0.000002","0.000003","0.000004","0.000005","0.000006","0.000007","0.000008","0.000009",
+            "0.00001","0.00002","0.00003","0.00004","0.00005","0.00006","0.00007","0.00008","0.00009"],
+            type: 'log',
+            linewidth:1
+          }
         }
       }
       computeGeneralTraceLayout() {
@@ -359,28 +317,25 @@
       }
       computeAnnotationsLayout() {
         return {
-                'xref':'x',
-                'yref':'y',
-                'axref':'x',
-                'ayref':'pixel',
-                'text':'',
-                'showarrow':true,
-                'arrowhead': 2,
-                'arrowsize': 1,
-                'arrowwidth': 1,
-                'arrowcolor': 'rgb(0, 0, 0)',
-                'ay':50,
-                'borderwidth': 0,
-                'borderpad': 0,
-                'arrowside':'start'
-              }
+          'xref':'x',
+          'yref':'y',
+          'axref':'x',
+          'ayref':
+          'pixel',
+          'text':'',
+          'showarrow':true,
+          'arrowhead': 2,
+          'arrowcolor':'rgb(0, 0, 0)',
+          'ay': 50,
+          'arrowside':'start',
+          'arrowwidth':1,
+        }
       }
+
 
       resetPlot() {
-        this.initLightCurvePlot();
-        this.initPerformancePlot(true);
+        this.initPlot();
       }
-
       setPlotTitle(title) {
         this.layout["title"] = title;
         Plotly.relayout(this.getPlot(), this.layout);
@@ -391,60 +346,20 @@
         this.layout.yaxis["title"] = ylabel;
         Plotly.relayout(this.getPlot(), this.layout);
       }
-
-      setYlimits(ymin, ymax) {
-        this.layout.yaxis["range"] = [ymin - (ymin*10/100),ymax + (ymax*10/100)];
-        Plotly.relayout(this.getPlot(), this.layout);
+      setAxisTickText(xTickText, yTickText) {
+        this.layout.xaxis["ticktext"] = xTickText;
+        this.layout.yaxis["ticktext"] = yTickText;
       }
-      addLine(x0,y0,x1,y1,color,width,dashType) {
-        this.layout["shapes"].push({
-                                    type: 'line',
-                                    x0: x0,
-                                    y0: y0,
-                                    x1: x1,
-                                    y1: y1,
-                                    xref: 'paper',
-                                    line: {
-                                      color: color,
-                                      width: width,
-                                      dash: dashType
-                                    }
-                                  })
-      }
-
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
-        var t0 = performance.now();
 
         // increment global counter
         this.countData += 1;
 
-        // save the container in which the point is pushed to
-        this.dataHistory.push(pointClass);
-
         // push the point into the container
         this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Sliding Window for points
-        var totalPointsOnWindow = this.getTotalPoints();
-
-        if(totalPointsOnWindow > this.slidingwindowsize)
-        {
-            var numberOfPointsToRemove = totalPointsOnWindow - this.slidingwindowsize;
-
-            // removing points from the containers with a last-in first-out politic
-            for(var i=0; i < numberOfPointsToRemove; i++)
-            {
-              var removeFromContainerId = this.dataHistory.shift(); // get first (oldest) container
-              this.dataArrays[removeFromContainerId].shiftDataArrays(1);
-            }
-        }
-        ////////////////////////////////////////////////////////////////////////
-
-
         // update the counter of the number of points on the plot
         this.countDataOnPlot = this.getTotalPoints();
-
 
         ////////////////////////////////////////////////////////////////////////
         // Annotations (Upper Limit Arrows)
@@ -452,9 +367,9 @@
 
         if(addUpperLimit)
         {
-          annotation["x"]  = x;
-          annotation["y"]  = y;
-          annotation["ax"] = x;
+          annotation["x"]  = Math.log10(x);
+          annotation["y"]  = Math.log10(y);
+          annotation["ax"] = Math.log10(x);
         }
         else
         {
@@ -462,22 +377,6 @@
         }
         this.annotations.push(annotation);
         ////////////////////////////////////////////////////////////////////////
-
-
-        ////////////////////////////////////////////////////////////////////////
-        // Sliding Window for annotations
-        if(this.annotations.length > this.slidingwindowsize)
-        {
-          var offset = this.annotations.length - this.slidingwindowsize;
-          for(var i=0; i < offset; i++)
-          {
-            this.annotations.shift();
-          }
-        }
-        var _annotations = Array.from(this.annotations);
-        this.layout["annotations"] = _annotations;
-        ////////////////////////////////////////////////////////////////////////
-
 
 
         ////////////////////////////////////////////////////////////////////////
@@ -499,47 +398,10 @@
         //Plotly.extendTraces(this.getPlot(), {y: [[rand()], [rand()]]}, [0, 1])
         ////////////////////////////////////////////////////////////////////////
 
-        var t1 = performance.now();
-        this.performanceTime = ((t1 - t0)/1000).toFixed(5);
-        if(this.debug)
-        {
-          Plotly.extendTraces(this.getPerformancePlot(), {
-            x: [[this.countData]],
-            y: [[this.performanceTime]],
-            text: [[this.countDataOnPlot]]
-          }, [0])
-        }
-      }
-
-
-
-      increaseSlidingWindowSize() {
-        if( this.slidingwindowsize < this.slidingwindowmaxsize)
-        {
-          this.slidingwindowsize += 1;
-          //this.initPerformancePlot(false);
-        }
-      }
-
-      decreaseSlidingWindowSize() {
-        if(this.slidingwindowsize > this.slidingwindowminsize)
-        {
-          this.slidingwindowsize -= 1;
-          //this.initPerformancePlot(false);
-        }
-      }
-
-      setMaxSlidingWindowSize() {
-        this.slidingwindowsize = this.slidingwindowmaxsize;
-        //this.initPerformancePlot(false);
-      }
-      setMinSlidingWindowSize() {
-        this.slidingwindowsize = this.slidingwindowminsize;
-        //this.initPerformancePlot(false);
       }
 
     }
 
-    window.customElements.define(LightCurve.is, LightCurve);
+    window.customElements.define(SpectralLightCurve.is, SpectralLightCurve);
   </script>
 </dom-module>
