@@ -7,7 +7,7 @@ app.use("/imports", express.static(path.join(__dirname, '/imports')));
 app.use("/styles", express.static(path.join(__dirname, '/styles')));
 
 app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')))
-app.use(express.static(path.join(__dirname, '/bower_components/MathJax')))
+
 
 
 app.use('/components', express.static(path.join(__dirname, '/components')))

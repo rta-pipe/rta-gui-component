@@ -6,6 +6,8 @@
 
     <title>RTA-GUI-Components DEMO</title>
 
+
+
     <script src="/bower_components/webcomponentsjs/webcomponents-loader.js" shadydom></script>
 
     <!-- web components -->
@@ -29,28 +31,37 @@
     <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
   -->
 
+  <!-- MathJax configuration
+
+  <script type="text/javascript" src="/bower_components/MathJax/MathJax.js"></script>
+
+  -->
+  
+  <script type="text/javascript">
+  /*
+    window.MathJax = {
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    };
+  */
+
+  /*
+    MathJax.Hub.Config({
+      extensions: ["tex2jax.js"],
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+      },
+      "HTML-CSS": { fonts: ["TeX"] }
+    });
+*/
+  </script>
 
 
-    <!-- MathJax configuration
-    <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
-    <script type="text/javascript">
-      window.MathJax = {
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-          processEscapes: true
-        }
-      };
-      //MathJax.Hub.Config({
-        //extensions: ["tex2jax.js"],
-        //jax: ["input/TeX", "output/HTML-CSS"],
-        //tex2jax: {
-          //inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-          //displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-          //processEscapes: true
-        //}//,
-        //"HTML-CSS": { fonts: ["TeX"] }
-      //});
-    </script> -->
 
 <!-- /var/www/html/spot6/cat2/js/MathJax -->
 
@@ -81,8 +92,9 @@
         </div>
 
         <br>
-        <div>
+        <div id="sleeptime" style="border: 2px solid green;padding: 25px;margin: 25px; text-align: center; font-size: 25px;">
           Sleep time: <p id="dt"></p>
+        </div>
         <div>
 
         <br>
@@ -109,6 +121,11 @@
               <a href="#" class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</a>
               <a href="#" class="btn btn-warning" onclick="setMinSlidingWindowSize()">Min window size</a>
             </div>
+            <div>
+              Tick distance: <input type="number" value=100 id="dtickInput"/>
+              <button class="btn btn-warning" onclick="setTickMode('linear')">Set tick distance</button>
+              <button class="btn btn-success" onclick="setTickMode('auto')">Set tick-mode = auto</button>
+            </div>
           <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
         </div>
 
@@ -119,10 +136,9 @@
           <spectral-light-curve id="spectralLightCurveWebcomp" width="1800px" height="800px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></spectral-light-curve>
         </div>
 
-      
+
 
         <!-- TODO HISTOGRAM -->
-
 
 
     </div>
@@ -204,18 +220,31 @@
     function startGeneratingData(mode) {
       $("#startbuttons").hide();
       $("#confButtons").show();
+      $("#sleeptime").show();
 
       if(mode == 'real')
       {
         dataGenMode = mode;
         index_for_real_data = 0;
+
+        ////////////////////////////////////////////////
+        // Application specific configurations
         document.querySelector('#lightCurveWebcomp').setYlimits(fluxMin,fluxMax);
+        document.querySelector('#lightCurveWebcomp').addLine(500000,100,0,100,"rgb(50, 171, 96)",2,"dashdot");
+        // document.querySelector('#lightCurveWebcomp').setTickDistance(500);
+
+
       }
       else if (mode == 'random')
       {
         dataGenMode = mode;
         x_for_random = 0;
+
+        ////////////////////////////////////////////////
+        // Application specific configurations
         document.querySelector('#lightCurveWebcomp').setYlimits(0,9);
+        document.querySelector('#lightCurveWebcomp').addLine(500000,3,0,3,"rgb(50, 171, 96)",2,"dashdot");
+        // document.querySelector('#lightCurveWebcomp').setTickDistance(5);
       }
       else
       {
@@ -277,6 +306,7 @@
       $("#startbuttons").show();
       //$("#startRandomData").show();
       $("#confButtons").hide();
+      $("#sleeptime").hide();
 
 
       clearInterval(interval);
@@ -383,7 +413,6 @@
           console.log("flux max and min:", fluxMax, fluxMin)
       });
     }
-
     function parseXValue(xString){
       var times = xString.split("/");
       return (parseFloat(times[0])+parseFloat(times[1]))/2;
@@ -413,12 +442,14 @@
 
       $("#confButtons").hide();
 
+      $("#sleeptime").hide();
+
       showComponent("navBarLCshow");
 
+      ////////////////////////////////////////////////
+      // General configurations
       document.querySelector('#lightCurveWebcomp').setPlotTitle("Light curve");
-      document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
-
-      document.querySelector('#lightCurveWebcomp').addLine(500000,100,0,100,"rgb(50, 171, 96)",2,"dashdot");
+      document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$10^{-13}$");// "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
 
       document.querySelector('#spectralLightCurveWebcomp').setPlotTitle("Spectral Light curve");
       document.querySelector('#spectralLightCurveWebcomp').setAxisLalbes("Energy [MeV]","$\\text{erg}\\text{cm}^{-2}\\text{s}^{-1}$");
@@ -461,6 +492,17 @@
     }
     function setMinSlidingWindowSize() {
       document.querySelector('#lightCurveWebcomp').setMinSlidingWindowSize();
+    }
+    function setTickMode(mode) {
+      if (mode=='linear')
+      {
+        var tickDistance = $('#dtickInput').val();
+        document.querySelector('#lightCurveWebcomp').setTickDistance(tickDistance);
+      }
+      else if (mode=='auto')
+      {
+        document.querySelector('#lightCurveWebcomp').setTickAutoMode();
+      }
     }
     ////////////////////////////////////////////////////////////////////////////
     </script>
