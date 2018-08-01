@@ -176,7 +176,8 @@
         this.annotations = []; // the annotations are independent from the classes
         this.performanceTime = 0;
 
-        this.layout["annotations"];
+        this.layout["annotations"] = [];
+        this.layout["shapes"] = [];
         ////////////////////////////////////////////////////////////////////////
         // Computing colors
         var colors = [];
@@ -303,6 +304,8 @@
             showgrid: true,
             zeroline: true,
             showline: true,
+            tickmode: 'auto',
+            //tick0: 0,
             tickformat:"05.f",
             tickangle:0,
             titlefont: {
@@ -396,6 +399,20 @@
         this.layout.yaxis["range"] = [ymin - (ymin*10/100),ymax + (ymax*10/100)];
         Plotly.relayout(this.getPlot(), this.layout);
       }
+
+      setTickDistance(dTick) {
+        this.layout.xaxis["tickmode"] = 'linear';
+        this.layout.xaxis["tick0"] = 0;
+        this.layout.xaxis["dtick"] = dTick;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
+      setTickAutoMode() {
+        this.layout.xaxis["tickmode"] = 'auto';
+        delete this.layout.xaxis.tick0;
+        delete this.layout.xaxis.dtick;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
+
       addLine(x0,y0,x1,y1,color,width,dashType) {
         this.layout["shapes"].push({
                                     type: 'line',

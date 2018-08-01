@@ -51,7 +51,12 @@ Example
 ### API
 * setPlotTitle(title);
 * setAxisLabels(xLabel, yLabel);
-* setYlimits(ymin, ymax); //(this interval will be stretched of another 20%)
+* setYlimits(ymin, ymax);
+  * The interval [ymin, ymax] will be stretched of another 20%
+* setTickDistance(dTick);
+  * Switch from 'auto' to 'linear' tick-mode. Set the distance between one tick and another on the X axis, in a linear fashion. Use with caution.
+* setTickAutoMode();
+  * Set the original 'auto' tick-mode
 * addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
 * addLine(x0,y0,x1,y1,color,width,dashType);
   * dashType: sets the dash style of lines. Set to a dash type string ("solid", "dot", "dash", "longdash", "dashdot", or "longdashdot") or a dash length list in px (eg "5px,10px,2px,2px").
