@@ -4,10 +4,8 @@
   "main": "light-curve.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
-    "MathJax": "^2.7.5"
-  },
-  "devDependencies": {
-    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+    "MathJax": "^2.7.5",
+    "plotly.js": "^1.39.3"
   },
   "resolutions": {
     "polymer": "^2.0.0"

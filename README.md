@@ -78,6 +78,7 @@ Example
 * setPlotTitle(title);
 * setAxisLabels(xLabel, yLabel);
 * setAxisTickText(xTickText, yTickText);
+* setYlimits(ymin,ymax);
 * addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
 * resetPlot();
 

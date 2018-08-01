@@ -26,23 +26,23 @@
     <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
   -->
 
-  <!-- MathJax configuration
+  <!-- MathJax configuration   -->
 
-  <script type="text/javascript" src="/bower_components/MathJax/MathJax.js"></script>
+    <script type="text/javascript">
 
-  -->
+      window.MathJax = {
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+          processEscapes: true
+        }
+      };
+  </script>
 
-  <script type="text/javascript">
-  /*
-    window.MathJax = {
-      tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-        processEscapes: true
-      }
-    };
-  */
+  <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
 
-  /*
+
+
+  <!--
     MathJax.Hub.Config({
       extensions: ["tex2jax.js"],
       jax: ["input/TeX", "output/HTML-CSS"],
@@ -53,8 +53,7 @@
       },
       "HTML-CSS": { fonts: ["TeX"] }
     });
-*/
-  </script>
+  -->
 
 
 
@@ -144,14 +143,111 @@
 
     <div style="border: 25px solid green;padding: 25px;margin: 25px;">
       Math Jax Test:
-      <p id="mathJaxTest">
-      </p>
+      <div>
+        Static loaded math:
+        <p id="mathJaxTest"></p>
+      </div>
+      <div>
+        Dynamic loaded math:
+        <p id="mathJaxAsyncTest"></p>
+
+      </div>
       <p>
         \[
         \frac{-b\pm\sqrt{b^2-4ac}}{2a}
         \]
       </p>
     </div>
+
+    <div style="border: 25px solid purple;padding: 25px;margin: 25px;">
+      extendTraces test:
+      <div id="plotyplot"></div>
+      <button class="btn btn-success" onclick="extendTheTrace()">Extend the trace</button>
+    </div>
+    <script>
+      var x_test = 0;
+      function extendTheTrace() {
+        var randomIntensity = generateRndIntensity();
+        var rndErrors = [getRandomError(),getRandomError(),getRandomError(),getRandomError()];
+        x_test = x_test + 5;
+
+        var p = document.getElementById('plotyplot');
+        Plotly.extendTraces(p, {text: [[generateRndText()]], y: [[randomIntensity]], x: [[x_test]], error_x: { array: [[2]], arrayminus: [[3]] }    }, [0])
+
+      }
+      $(document).ready(function(){
+
+        var p = document.getElementById('plotyplot');
+        var trace = {
+                  type: 'scatter',
+                  mode: 'markers',
+                  hoverinfo: 'text',
+                  text: [],
+                  x: [],
+                  y: [],
+                  marker: {
+                    size:8,
+                    symbol: ['circle']
+                  },
+                  error_x: {
+                    array: [],
+                    arrayminus: [],
+                    symmetric: false,
+                    type: 'data',
+                    visible: true,
+                    width: 0,
+                    thickness : 1
+                  },
+                  error_y: {
+                    array: [],
+                    arrayminus: [],
+                    symmetric: false,
+                    type: 'data',
+                    visible: true,
+                    width: 0,
+                    thickness : 1
+                  },
+               };
+          var layout = {
+            showlegend: false,
+            title: "test",
+            xaxis: {
+              title: "testX",
+              showgrid: true,
+              zeroline: true,
+              showline: true,
+              tickmode: 'auto',
+              //tick0: 0,
+              tickformat:"05.f",
+              tickangle:0,
+              titlefont: {
+                family: 'Courier New, monospace',
+                size: 18,
+                color: '#7f7f7f'
+              }
+            },
+            yaxis: {
+              title: "testY",
+              showgrid: true,
+              zeroline: true,
+              showline: true,
+              titlefont: {
+                family: 'Courier New, monospace',
+                size: 18,
+                color: '#7f7f7f'
+              }
+            },
+            shapes: []
+          };
+
+          Plotly.newPlot( p , [trace], layout);
+
+
+      })
+    </script>
+
+
+
 
 
     <script>
@@ -335,7 +431,6 @@
     ///////////////////////////////////////////////////////////////////////////
     // real data loading..
     function loadRealData(filepath) {
-      $("#startRealData").show();
 
       console.log("Loading ",filepath);
       // parse the file
@@ -406,6 +501,9 @@
             }
           }
           console.log("flux max and min:", fluxMax, fluxMin)
+
+          $("#startRealData").show();
+
       });
     }
     function parseXValue(xString){
@@ -433,6 +531,7 @@
 
     $('document').ready(function() {
 
+
       $("#startRealData").hide();
 
       $("#confButtons").hide();
@@ -444,7 +543,7 @@
       ////////////////////////////////////////////////
       // General configurations
       document.querySelector('#lightCurveWebcomp').setPlotTitle("Light curve");
-      document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$10^{-13}$");// "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
+      document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
 
       document.querySelector('#spectralLightCurveWebcomp').setPlotTitle("Spectral Light curve");
       document.querySelector('#spectralLightCurveWebcomp').setAxisLalbes("Energy [MeV]","$\\text{erg}\\text{cm}^{-2}\\text{s}^{-1}$");
@@ -467,9 +566,22 @@
       $('#dt').text(" 1000 ms");
       $('#dt').css("font-size", "16px"); // to fix
 
+
+
+
       $('#mathJaxTest').text("$10^{-13}$");
 
+      // use setTimeout() to execute
+      setTimeout(function(){
+        $('#mathJaxAsyncTest').text("$5^{-15}$");
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,"mathJaxAsyncTest"]);
+      }, 2000)
+
+
+
     });
+
+
 
 
 

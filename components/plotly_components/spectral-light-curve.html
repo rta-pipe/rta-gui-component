@@ -1,7 +1,5 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
-<!--<link rel="import" href="../plotly.js/polymer-element.html">-->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
+<link rel="import" href="/imports/plotlyjs-import.html">
 <!--<link rel="import" href = "/imports/mathJax-import.html">-->
 
 
@@ -260,14 +258,18 @@
           showlegend: false,
           title: plottitle,
           xaxis: {
+            title:"Energy [MeV]",
+            linewidth:1,
+            type: 'log',
+            range: [1,5],
             ticks:"inside",
             tickvals:["10","20","30","40","50","60","70","80","90","100","200","300","400","500","600","700","800","900","1000","2000","3000","4000","5000","6000",
             "7000","8000","9000","10000","20000","30000","40000","50000","60000"],
-            type: 'log',
-            linewidth:1,
-            title:"Energy [MeV]"
           },
           yaxis: {
+            linewidth:1,
+            type: 'log',
+            range: [-12, -5],
             ticks:"inside",
             tickvals:["0.0000000000001","0.0000000000002","0.0000000000003","0.0000000000004","0.0000000000005","0.0000000000006","0.0000000000007","0.0000000000008","0.0000000000009",
             "0.000000000001","0.000000000002","0.000000000003","0.000000000004","0.000000000005","0.000000000006","0.000000000007","0.000000000008","0.000000000009",
@@ -278,8 +280,6 @@
             "0.0000001","0.0000002","0.0000003","0.0000004","0.0000005","0.0000006","0.0000007","0.0000008","0.0000009",
             "0.000001","0.000002","0.000003","0.000004","0.000005","0.000006","0.000007","0.000008","0.000009",
             "0.00001","0.00002","0.00003","0.00004","0.00005","0.00006","0.00007","0.00008","0.00009"],
-            type: 'log',
-            linewidth:1
           }
         }
       }
@@ -349,6 +349,10 @@
       setAxisTickText(xTickText, yTickText) {
         this.layout.xaxis["ticktext"] = xTickText;
         this.layout.yaxis["ticktext"] = yTickText;
+      }
+      setYlimits(ymin, ymax) {
+        this.layout.yaxis["range"] = [ymin,ymax];
+        Plotly.relayout(this.getPlot(), this.layout);
       }
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
 

@@ -1,13 +1,12 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
-<!--<link rel="import" href="../plotly.js/polymer-element.html">-->
+<link rel="import" href="/imports/plotlyjs-import.html">
 <link rel="import" href="/styles/plotly-style.html">
-
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <!--<link rel="import" href = "/imports/mathJax-import.html">-->
 
 <dom-module id="light-curve">
   <template>
+
     <style include="plotly-style"></style>
 
     <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
@@ -26,6 +25,21 @@
         </td>
         <td>
           <div id="perf-graph" style="width: 480px; height: 400px;"></div>
+        </td>
+        <td>
+          <div style="border: 2px solid green;padding: 25px;margin: 25px;">
+            Math Jax test inside the light-curve component:
+            <p id="mathJaxTest">
+            </p>
+            <p>
+              \[
+              \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+              \]
+            </p>
+            <p id="mathjaxpolytest">
+              $5^{-15}$
+            </p>
+          </div>
         </td>
       </tr>
     </table>

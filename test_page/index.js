@@ -8,6 +8,8 @@ app.use("/styles", express.static(path.join(__dirname, '/styles')));
 
 app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')))
 
+app.use('/extensions', express.static(path.join(__dirname, '/bower_components/MathJax/extensions')))
+
 
 
 app.use('/components', express.static(path.join(__dirname, '/components')))
