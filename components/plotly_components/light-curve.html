@@ -89,7 +89,7 @@
     this.error_y_data_minus.push(err_y_minus);
   }
 
-  TraceClass.prototype.getTraceForPlotly = function(generalTraceLayout) {
+  TraceClass.prototype.getTraceForPlotly = function(pointsTraceLayout) {
     var _text_data = Array.from(this.text_data);
     var _x_data = Array.from(this.x_data);
     var _y_data = Array.from(this.y_data);
@@ -99,7 +99,7 @@
     var _err_y_data_minus = Array.from(this.error_y_data_minus);
 
 
-    var trace = JSON.parse(JSON.stringify(generalTraceLayout));
+    var trace = JSON.parse(JSON.stringify(pointsTraceLayout));
 
     trace["text"] = _text_data;
     trace["x"] = _x_data;
@@ -118,6 +118,8 @@
     return trace;
 
   }
+
+
 
     /**
      * `light-curve`
@@ -157,7 +159,6 @@
         return sum;
       }
       getClassColor(classesNumber, classIndex) {
-
         if ( classesNumber == 1 )
           var colors = ["#7a7a7a"];    // grey
         else if( classesNumber == 2)
@@ -174,6 +175,7 @@
         return colors[classIndex];
       }
 
+
       ready() {
         super.ready();
 
@@ -183,15 +185,18 @@
       }
 
       initLightCurvePlot() {
+
+        ////////////////////////////////////////////////////////////////////////
+        // Resetting data
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
         this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
         this.dataHistory = []; // remember in which container the data has been pushed each time
         this.annotations = []; // the annotations are independent from the classes
         this.performanceTime = 0;
-
         this.layout["annotations"] = [];
         this.layout["shapes"] = [];
+
         ////////////////////////////////////////////////////////////////////////
         // Computing colors
         var colors = [];
@@ -212,12 +217,14 @@
         var traces = [];
         for(var i = 0; i < this.classesnumber; i++)
         {
-          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
+          var trace = this.dataArrays[i].getTraceForPlotly(this.pointsTraceLayout);
           trace["marker"]["color"] = colors[i];
           traces.push(trace);
         }
         ////////////////////////////////////////////////////////////////////////
 
+
+        ////////////////////////////////////////////////////////////////////////
         // initialize the plot
         Plotly.newPlot( this.getPlot(), traces, this.layout, {scrollZoom: true});
 
@@ -236,6 +243,43 @@
         }
       }
 
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      // Sliding Window for annotations
+      shiftAnnotationArray() {
+        if(this.annotations.length > this.slidingwindowsize)
+        {
+          var offset = this.annotations.length - this.slidingwindowsize;
+          for(var i=0; i < offset; i++)
+          {
+            this.annotations.shift();
+          }
+        }
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+      // @Private
+      addPlaceHolderForAnnotation() {
+        var annotation = {};//JSON.parse(JSON.stringify(this.annotationsLayout));
+        annotation["showarrow"] = false;
+        this.annotations.push(annotation);
+        this.shiftAnnotationArray();
+      }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      // Annotations (Upper Limit Arrows)
+      addAnnotation(x,y) {
+
+        var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
+
+        annotation["x"]  = x;
+        annotation["y"]  = y;
+        annotation["ax"] = x;
+
+        this.annotations.push(annotation);
+        this.shiftAnnotationArray();
+      }
 
       //////////////////////////////////////////
       // PUBLIC API
@@ -278,7 +322,7 @@
           },
           slidingwindowmaxsize: {
             type: Number,
-            value: 300
+            value: 5000
           },
           slidingwindowminsize: {
             type: Number,
@@ -292,9 +336,9 @@
             type: Object,
             computed: 'computeLayout(plottitle, xlabel, ylabel)'
           },
-          generalTraceLayout: {
+          pointsTraceLayout: {
             type: Object,
-            computed: 'computeGeneralTraceLayout()'
+            computed: 'computePointsTraceLayout()'
           },
           annotationsLayout: {
             type: Object,
@@ -342,7 +386,7 @@
           shapes: []
         }
       }
-      computeGeneralTraceLayout() {
+      computePointsTraceLayout() {
         return {
                   mode: 'markers',
                   text: [],
@@ -350,7 +394,6 @@
                   y: [],
                   marker: {
                     size:8,
-                    symbol: ['circle']
                   },
                   hoverinfo: 'text',
                   type: 'scatter',
@@ -443,25 +486,51 @@
                                   })
       }
 
+
+
+      //////////////////////////////////////////////////////////////////////////
+      // @Public
+      highlightsAnnotations() {
+        //var _annotations = Array.from(this.annotations);
+        this.layout["annotations"] = this.annotations;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
+
+      //////////////////////////////////////////////////////////////////////////
+      // @Public
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
         var t0 = performance.now();
 
         // increment global counter
         this.countData += 1;
 
+        if(this.countDataOnPlot < this.slidingwindowsize)
+
+
+        // increment points on plot counter
+        this.countDataOnPlot += 1;
+
+        // Annotations handling
+        if(addUpperLimit)
+          this.addAnnotation(x,y);
+        else
+          this.addPlaceHolderForAnnotation();
+
+
         // save the container in which the point is pushed to
-        this.dataHistory.push(pointClass);
+        // this.dataHistory.push(pointClass);
 
         // push the point into the container
-        this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
+        // this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
 
         ////////////////////////////////////////////////////////////////////////
         // Sliding Window for points
-        var totalPointsOnWindow = this.getTotalPoints();
+        /*
+        this.countDataOnPlot = this.getTotalPoints();
 
-        if(totalPointsOnWindow > this.slidingwindowsize)
+        if(this.countDataOnPlot > this.slidingwindowsize)
         {
-            var numberOfPointsToRemove = totalPointsOnWindow - this.slidingwindowsize;
+            var numberOfPointsToRemove = this.countDataOnPlot - this.slidingwindowsize;
 
             // removing points from the containers with a last-in first-out politic
             for(var i=0; i < numberOfPointsToRemove; i++)
@@ -470,65 +539,29 @@
               this.dataArrays[removeFromContainerId].shiftDataArrays(1);
             }
         }
-        ////////////////////////////////////////////////////////////////////////
+        */////////////////////////////////////////////////////////////////////////
 
-
-        // update the counter of the number of points on the plot
-        this.countDataOnPlot = this.getTotalPoints();
-
-
-        ////////////////////////////////////////////////////////////////////////
-        // Annotations (Upper Limit Arrows)
-        var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
-
-        if(addUpperLimit)
-        {
-          annotation["x"]  = x;
-          annotation["y"]  = y;
-          annotation["ax"] = x;
-        }
-        else
-        {
-          annotation["showarrow"] = false;
-        }
-        this.annotations.push(annotation);
-        ////////////////////////////////////////////////////////////////////////
-
-
-        ////////////////////////////////////////////////////////////////////////
-        // Sliding Window for annotations
-        if(this.annotations.length > this.slidingwindowsize)
-        {
-          var offset = this.annotations.length - this.slidingwindowsize;
-          for(var i=0; i < offset; i++)
-          {
-            this.annotations.shift();
-          }
-        }
-        var _annotations = Array.from(this.annotations);
-        this.layout["annotations"] = _annotations;
-        ////////////////////////////////////////////////////////////////////////
 
 
 
         ////////////////////////////////////////////////////////////////////////
-        // Get Plotly trace objects
-        var traces = [];
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
-          traces.push(trace);
-        }
+        // Compute slidingwindowsize for trace [pointClass]
+
+
+
+        Plotly.extendTraces(this.getPlot(), { x: [[x]],
+                                              y: [[y]],
+                                              text: [[text]],
+                                              'error_x.array': [[err_x]],
+                                              'error_x.arrayminus': [[err_x_min]],
+                                              'error_y.array': [[err_y]],
+                                              'error_y.arrayminus': [[err_y_min]]}, [pointClass], this.slidingwindowsize-this.countDataOnPlot)
         ////////////////////////////////////////////////////////////////////////
 
-        console.log(traces[pointClass]);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Update plot
-        Plotly.react(this.getPlot(), traces, this.layout);
-        //https://codepen.io/etpinard/pen/QdZoQd
-        //Plotly.extendTraces(this.getPlot(), {y: [[rand()], [rand()]]}, [0, 1])
-        ////////////////////////////////////////////////////////////////////////
+        this.highlightsAnnotations();
+
+
 
         var t1 = performance.now();
         this.performanceTime = ((t1 - t0)/1000).toFixed(5);
@@ -557,6 +590,9 @@
         {
           this.slidingwindowsize -= 1;
           //this.initPerformancePlot(false);
+
+          if(this.countDataOnPlot == this.slidingwindowmaxsize)
+            this.countDataOnPlot -= 1;
         }
       }
 
@@ -567,6 +603,8 @@
       setMinSlidingWindowSize() {
         this.slidingwindowsize = this.slidingwindowminsize;
         //this.initPerformancePlot(false);
+        if(this.countDataOnPlot>1)
+          this.countDataOnPlot = this.slidingwindowminsize;
       }
 
     }
