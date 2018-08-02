@@ -172,8 +172,15 @@
         x_test = x_test + 5;
 
         var p = document.getElementById('plotyplot');
-        Plotly.extendTraces(p, {text: [[generateRndText()]], y: [[randomIntensity]], x: [[x_test]], error_x: { array: [[2]], arrayminus: [[3]] }    }, [0])
 
+        Plotly.extendTraces(p, {text: [[generateRndText()]],
+                                y: [[randomIntensity]],
+                                x: [[x_test]],
+                                'error_x.array': [[2]],
+                                'error_x.arrayminus': [[3]],
+                                'error_y.array': [[2]],
+                                'error_y.arrayminus': [[3]]
+                                } , [0])
       }
       $(document).ready(function(){
 

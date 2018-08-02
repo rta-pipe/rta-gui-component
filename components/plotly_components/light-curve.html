@@ -227,7 +227,7 @@
         if(this.debug)
         {
           var initData = {  x: [], y: [], text: []  };
-          var layout = this.computeLayout("Performance (only points)", "", "Time for redraw [seconds]");
+          var layout = this.computeLayout("Performance", "", "Time for redraw [seconds]");
           layout.yaxis["range"] = [0,1];
           if(isFirstLoad)
             Plotly.newPlot(this.getPerformancePlot(), [initData], layout);
