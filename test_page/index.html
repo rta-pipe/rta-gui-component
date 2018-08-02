@@ -26,7 +26,7 @@
     <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
   -->
 
-  <!-- MathJax configuration   -->
+  <!-- MathJax configuration
 
     <script type="text/javascript">
 
@@ -39,7 +39,7 @@
   </script>
 
   <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
-
+-->
 
 
   <!--
@@ -120,7 +120,10 @@
               <button class="btn btn-warning" onclick="setTickMode('linear')">Set tick distance</button>
               <button class="btn btn-success" onclick="setTickMode('auto')">Set tick-mode = auto</button>
             </div>
-          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=20 debug=true></light-curve>
+            <div>
+              <button class="btn btn-primary" onclick="highlightUpperLimits()">Highlights upper limits</button>
+            </div>
+          <light-curve id="lightCurveWebcomp" width="1600px" height="400px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=10 debug=true></light-curve>
         </div>
 
         <!-- SPECTRAL LIGHT CURVE -->
@@ -617,6 +620,9 @@
       {
         document.querySelector('#lightCurveWebcomp').setTickAutoMode();
       }
+    }
+    function highlightUpperLimits() {
+      document.querySelector('#lightCurveWebcomp').highlightUpperLimits();
     }
     ////////////////////////////////////////////////////////////////////////////
     </script>
