@@ -250,6 +250,7 @@
           showlegend: false,
           title: plottitle,
           xaxis: {
+            //range: [0, 10000],
             title: xlabel,
             showgrid: true,
             zeroline: true,
@@ -292,6 +293,7 @@
                   hoverinfo: 'text',
                   error_x: {
                     type: 'data',
+                    color: 'grey',
                     array: [],
                     arrayminus: [],
                     symmetric: false,
@@ -301,6 +303,7 @@
                   },
                   error_y: {
                     type: 'data',
+                    color: 'grey',
                     array: [],
                     arrayminus: [],
                     symmetric: false,
@@ -386,6 +389,9 @@
       highlightsAnnotations() {
         //var _annotations = Array.from(this.annotations);
         this.layout["annotations"] = this.annotations;
+        //var _length = this.annotations.length-1;
+        //console.log(this.annotations[_length]);
+        //Plotly.relayout(this.getPlot(), 'annotations[1]');
         Plotly.relayout(this.getPlot(), this.layout);
       }
 
@@ -426,7 +432,7 @@
         ////////////////////////////////////////////////////////////////////////
 
 
-        this.highlightsAnnotations();
+        //this.highlightsAnnotations();
 
 
 
