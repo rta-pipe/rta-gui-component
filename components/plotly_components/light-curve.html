@@ -43,84 +43,10 @@
         </td>
       </tr>
     </table>
-
-
-
-
-
   </template>
 
+
   <script>
-
-  console.log(window)
-
-  function TraceClass(className, color){
-    this.className = className;
-    this.color = color;
-    this.text_data = [];
-    this.x_data = [];
-    this.y_data = [];
-    // asymmetric error bars
-    this.error_x_data = [];
-    this.error_x_data_minus = [];
-    this.error_y_data = [];
-    this.error_y_data_minus = [];
-  }
-
-  TraceClass.prototype.shiftDataArrays = function(shiftLength) {
-    for(var i=0; i < shiftLength; i++){
-      this.text_data.shift();
-      this.x_data.shift();
-      this.y_data.shift();
-      this.error_x_data.shift();
-      this.error_x_data_minus.shift();
-      this.error_y_data.shift();
-      this.error_y_data_minus.shift();
-    }
-  };
-
-  TraceClass.prototype.feed = function(text, x, y, err_x, err_x_minus, err_y, err_y_minus) {
-    this.text_data.push(text);
-    this.x_data.push(x);
-    this.y_data.push(y);
-    this.error_x_data.push(err_x);
-    this.error_x_data_minus.push(err_x_minus);
-    this.error_y_data.push(err_y);
-    this.error_y_data_minus.push(err_y_minus);
-  }
-
-  TraceClass.prototype.getTraceForPlotly = function(pointsTraceLayout) {
-    var _text_data = Array.from(this.text_data);
-    var _x_data = Array.from(this.x_data);
-    var _y_data = Array.from(this.y_data);
-    var _err_x_data = Array.from(this.error_x_data);
-    var _err_x_data_minus = Array.from(this.error_x_data_minus);
-    var _err_y_data = Array.from(this.error_y_data);
-    var _err_y_data_minus = Array.from(this.error_y_data_minus);
-
-
-    var trace = JSON.parse(JSON.stringify(pointsTraceLayout));
-
-    trace["text"] = _text_data;
-    trace["x"] = _x_data;
-    trace["y"] = _y_data;
-    trace["marker"]["color"] = this.color;
-
-    // error bars
-    trace["error_x"]["array"] = _err_x_data;
-    trace["error_x"]["arrayminus"] = _err_x_data_minus;
-    trace["error_x"]["color"] = this.color;
-
-    trace["error_y"]["array"] = _err_y_data;
-    trace["error_y"]["arrayminus"] = _err_y_data_minus;
-    trace["error_y"]["color"] = this.color;
-
-    return trace;
-
-  }
-
-
-
     /**
      * `light-curve`
      * This element will display the light-curve plot
@@ -136,100 +62,63 @@
         super();
         this.plotName = 'light-curve-div';
 
-
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
-
-        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
-        this.dataHistory = []; // remember in which container the data has been pushed each time
-
-        this.annotations = []; // the annotations are independent from the classes
-
         this.performanceTime = 0;
+        this.annotations = []; // the annotations are independent from the classes
       }
-
-      // selector
-      getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
-      getPerformancePlot() { return this.shadowRoot.querySelector("#perf-graph"); }
-      // counts all the points of every container (TraceClass)
-      getTotalPoints() {
-        var sum = 0;
-        for(var i = 0; i < this.classesnumber; i++)
-            sum += this.dataArrays[i].y_data.length;
-        return sum;
-      }
-      getClassColor(classesNumber, classIndex) {
-        if ( classesNumber == 1 )
-          var colors = ["#7a7a7a"];    // grey
-        else if( classesNumber == 2)
-          var colors = ["#7a7a7a", "#f18a03"]; // grey, orange
-        else if( classesNumber == 3)
-          var colors = ["#7a7a7a", "#f18a03", "#ef0000"]; // grey, orange, red
-        else if( classesNumber == 4)
-          var colors = ["#7a7a7a", "#003cef", "#f18a03", "#ef0000"]; // grey, blue, orange, red
-        else if( classesNumber == 5)
-          var colors = ["#7a7a7a", "#5fa815", "#f18a03", "#ef0000"];  // grey , green, blue, orange, red
-        else
-          var colors = ["#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6"]; // all purple
-
-        return colors[classIndex];
-      }
-
 
       ready() {
         super.ready();
-
-        this.initLightCurvePlot();
-
+        this.initLightCurvePlot(true);
         this.initPerformancePlot(true);
       }
 
-      initLightCurvePlot() {
 
-        ////////////////////////////////////////////////////////////////////////
-        // Resetting data
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      getPerformancePlot() { return this.shadowRoot.querySelector("#perf-graph"); }
+
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      getClassColor(classIndex) {
+        var colors = ["#7a7a7a", "#5fa815", "#f18a03", "#ef0000","#f700d6", "#f700d6", "#f700d6"];  // grey , green, blue, orange, red, purple, purple....
+        return colors[classIndex];
+      }
+
+      resetPointsTraceLayout() {
+        this.pointsTraceLayout.x = new Array();
+        this.pointsTraceLayout.y = new Array();
+        this.pointsTraceLayout.text = new Array();
+        this.pointsTraceLayout.error_x.array = new Array();
+        this.pointsTraceLayout.error_x.arrayminus = new Array();
+        this.pointsTraceLayout.error_y.array = new Array();
+        this.pointsTraceLayout.error_y.arrayminus = new Array();
+      }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      initLightCurvePlot(isFirstLoad) {
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
-        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
-        this.dataHistory = []; // remember in which container the data has been pushed each time
         this.annotations = []; // the annotations are independent from the classes
         this.performanceTime = 0;
-        this.layout["annotations"] = [];
-        this.layout["shapes"] = [];
+        this.resetPointsTraceLayout();
 
-        ////////////////////////////////////////////////////////////////////////
-        // Computing colors
-        var colors = [];
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          colors.push(this.getClassColor(this.classesnumber,i));
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Initialize the Data Arrays
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          this.dataArrays[i] = new TraceClass(i,colors[i]);
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Get Plotly trace objects
-        var traces = [];
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          var trace = this.dataArrays[i].getTraceForPlotly(this.pointsTraceLayout);
-          trace["marker"]["color"] = colors[i];
-          traces.push(trace);
-        }
-        ////////////////////////////////////////////////////////////////////////
-
-
-        ////////////////////////////////////////////////////////////////////////
-        // initialize the plot
-        Plotly.newPlot( this.getPlot(), traces, this.layout, {scrollZoom: true});
+        if(! isFirstLoad)
+          Plotly.react( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: true});
+        else
+          Plotly.newPlot( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: true});
 
       }
 
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
       initPerformancePlot(isFirstLoad){
         if(this.debug)
         {
@@ -245,14 +134,13 @@
 
       ////////////////////////////////////////////////////////////////////////
       // @Private
-      // Sliding Window for annotations
-      shiftAnnotationArray() {
-        if(this.annotations.length > this.slidingwindowsize)
+      shiftArray(array) {
+        if(array.length > this.slidingwindowsize)
         {
-          var offset = this.annotations.length - this.slidingwindowsize;
+          var offset = array.length - this.slidingwindowsize;
           for(var i=0; i < offset; i++)
           {
-            this.annotations.shift();
+            array.shift();
           }
         }
       }
@@ -263,12 +151,11 @@
         var annotation = {};//JSON.parse(JSON.stringify(this.annotationsLayout));
         annotation["showarrow"] = false;
         this.annotations.push(annotation);
-        this.shiftAnnotationArray();
+        this.shiftArray(this.annotations);
       }
 
       ////////////////////////////////////////////////////////////////////////
       // @Private
-      // Annotations (Upper Limit Arrows)
       addAnnotation(x,y) {
 
         var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
@@ -278,8 +165,13 @@
         annotation["ax"] = x;
 
         this.annotations.push(annotation);
-        this.shiftAnnotationArray();
+        this.shiftArray(this.annotations);
       }
+
+
+
+
+
 
       //////////////////////////////////////////
       // PUBLIC API
@@ -363,7 +255,6 @@
             zeroline: true,
             showline: true,
             tickmode: 'auto',
-            //tick0: 0,
             tickformat:"05.f",
             tickangle:0,
             titlefont: {
@@ -383,34 +274,36 @@
               color: '#7f7f7f'
             }
           },
+          annotations: [],
           shapes: []
         }
       }
       computePointsTraceLayout() {
         return {
-                  mode: 'markers',
                   text: [],
                   x: [],
                   y: [],
+                  type: 'scatter',
+                  mode: 'markers',
                   marker: {
                     size:8,
+                    color: []
                   },
                   hoverinfo: 'text',
-                  type: 'scatter',
                   error_x: {
+                    type: 'data',
                     array: [],
                     arrayminus: [],
                     symmetric: false,
-                    type: 'data',
                     visible: true,
                     width: 0,
                     thickness : 1
                   },
                   error_y: {
+                    type: 'data',
                     array: [],
                     arrayminus: [],
                     symmetric: false,
-                    type: 'data',
                     visible: true,
                     width: 0,
                     thickness : 1
@@ -437,8 +330,8 @@
       }
 
       resetPlot() {
-        this.initLightCurvePlot();
-        this.initPerformancePlot(true);
+        this.initLightCurvePlot(false);
+        this.initPerformancePlot(false);
       }
 
       setPlotTitle(title) {
@@ -463,6 +356,7 @@
         this.layout.xaxis["dtick"] = dTick;
         Plotly.relayout(this.getPlot(), this.layout);
       }
+
       setTickAutoMode() {
         this.layout.xaxis["tickmode"] = 'auto';
         delete this.layout.xaxis.tick0;
@@ -471,41 +365,37 @@
       }
 
       addLine(x0,y0,x1,y1,color,width,dashType) {
-        this.layout["shapes"].push({
-                                    type: 'line',
-                                    x0: x0,
-                                    y0: y0,
-                                    x1: x1,
-                                    y1: y1,
-                                    xref: 'paper',
-                                    line: {
-                                      color: color,
-                                      width: width,
-                                      dash: dashType
-                                    }
-                                  })
+        var line = {
+                    type: 'line',
+                    x0: x0,
+                    y0: y0,
+                    x1: x1,
+                    y1: y1,
+                    xref: 'paper',
+                    line: {
+                      color: color,
+                      width: width,
+                      dash: dashType
+                    }
+                  };
+        this.layout["shapes"].push(line);
       }
 
 
 
-      //////////////////////////////////////////////////////////////////////////
-      // @Public
       highlightsAnnotations() {
         //var _annotations = Array.from(this.annotations);
         this.layout["annotations"] = this.annotations;
         Plotly.relayout(this.getPlot(), this.layout);
       }
 
-      //////////////////////////////////////////////////////////////////////////
-      // @Public
+
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
+
         var t0 = performance.now();
 
         // increment global counter
         this.countData += 1;
-
-        if(this.countDataOnPlot < this.slidingwindowsize)
-
 
         // increment points on plot counter
         this.countDataOnPlot += 1;
@@ -516,36 +406,13 @@
         else
           this.addPlaceHolderForAnnotation();
 
+        var color = this.getClassColor(pointClass);
 
-        // save the container in which the point is pushed to
-        // this.dataHistory.push(pointClass);
+        this.pointsTraceLayout.marker.color.push(color);
+        // this.pointsTraceLayout.error_x.color = color;
+        // this.pointsTraceLayout.error_y.color = color;
 
-        // push the point into the container
-        // this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
-
-        ////////////////////////////////////////////////////////////////////////
-        // Sliding Window for points
-        /*
-        this.countDataOnPlot = this.getTotalPoints();
-
-        if(this.countDataOnPlot > this.slidingwindowsize)
-        {
-            var numberOfPointsToRemove = this.countDataOnPlot - this.slidingwindowsize;
-
-            // removing points from the containers with a last-in first-out politic
-            for(var i=0; i < numberOfPointsToRemove; i++)
-            {
-              var removeFromContainerId = this.dataHistory.shift(); // get first (oldest) container
-              this.dataArrays[removeFromContainerId].shiftDataArrays(1);
-            }
-        }
-        */////////////////////////////////////////////////////////////////////////
-
-
-
-
-        ////////////////////////////////////////////////////////////////////////
-        // Compute slidingwindowsize for trace [pointClass]
+        this.shiftArray(this.pointsTraceLayout.marker.color);
 
 
 
@@ -555,7 +422,7 @@
                                               'error_x.array': [[err_x]],
                                               'error_x.arrayminus': [[err_x_min]],
                                               'error_y.array': [[err_y]],
-                                              'error_y.arrayminus': [[err_y_min]]}, [pointClass], this.slidingwindowsize-this.countDataOnPlot)
+                                              'error_y.arrayminus': [[err_y_min]]}, [0], this.slidingwindowsize)
         ////////////////////////////////////////////////////////////////////////
 
 
