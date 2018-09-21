@@ -36,13 +36,18 @@ In order to test the Polymer components, an Express (Node.js) server has been se
 This element will display the light-curve plot. The light curve plot show the intensity of an astrophysical source with respect to time. Each point has a vertical and horizontal error bar or it can have an upper limit (an arrow facing down). The points can have different colors, depending on their class.
 
 ### Static Configurations
-* height and width of the plot
-* title and axis labels
-* number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
-* sliding window initial size (only in the case of linear axis)
-* sliding window max size (defailt = 500)
-* sliding window min size (default = 1)
-* Debug mode: display informations and a performance plot
+* [height] : height of the plot (default = 400px)
+* [width] : width of the plot (default = 400px)
+* [plottitle] : label of the plot title (default = 'Title not set')
+* [xlabel] : label of the x axis (default = 'xlabel not set')
+* [ylabel] : label of the y axis (default = 'ylabel not set')
+* [classesnumber] : number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
+* [slidingwindowsize] : how many points the plot can display (only in the case of linear axis) (default = 100)
+* [slidingwindowmaxsize] : it's possibile to increment the number of points displayed by the plot up to this value (default = 500)
+* [slidingwindowminsize] : it's possibile to decrement the number of points displayed by the plot down to this value (default = 1)
+* [scrollzoom] : enables zooming with the mouse wheel (default = false)
+* [showcontrols] : shows up the controls buttons. (dafault = true)
+* [debug] : displays informations and shows a performance plot (default = false)
 
 Example
 
@@ -60,6 +65,7 @@ Example
 * addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
 * addLine(x0,y0,x1,y1,color,width,dashType);
   * dashType: sets the dash style of lines. Set to a dash type string ("solid", "dot", "dash", "longdash", "dashdot", or "longdashdot") or a dash length list in px (eg "5px,10px,2px,2px").
+* highlightsAnnotations();
 * resetPlot();
 
 ### Issues

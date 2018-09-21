@@ -9,45 +9,104 @@
 
     <style include="plotly-style"></style>
 
+    <style>
+      #control-div {
+        padding: 20px 20px 20px 20px;
+      }
+      #debug-div {
+
+      }
+      .grey_button {
+        background-color: #e7e7e7;
+        color: black;
+        margin-right: 15px;
+        margin-top: 10px;
+        padding: 12px 28px;
+        font-size: 16px;
+
+      }
+      .grey_button {
+          -webkit-transition-duration: 0.4s; /* Safari */
+          transition-duration: 0.4s;
+      }
+
+      .grey_button:hover {
+          background-color: white;
+          color: grey;
+      }
+    </style>
+
+
+    <!-- Controls buttons -->
+    <div hidden$="[[!showcontrols]]" id="control-div">
+      <div>
+        <button class="grey_button" on-click="increaseSlidingWindowSize">Increase window size by 1</a>
+        <button class="grey_button" on-click="decreaseSlidingWindowSize">Decrease window size by 1</a>
+        <button class="grey_button" on-click="setMaxSlidingWindowSize">Max window size</a>
+        <button class="grey_button" on-click="setMinSlidingWindowSize">Min window size</a>
+      </div>
+      <div>
+        Tick distance: <input type="number" value=100 id="dtickInput"/>
+        <button class="grey_button" on-click="setTickDistance">Set ticks distance</button>
+        <button class="grey_button" on-click="setTickAutoMode">Set auto ticks distance</button>
+      </div>
+      <div>
+        <button class="grey_button" hidden$="[[annotationenabled]]" on-click="highlightsAnnotations">Shows upper limits</button>
+        <!--<button class="grey_button" hidden$="[[!annotationenabled]]" on-click="hideAnnotations">Hide the upper limits</button>-->
+      </div>
+    </div>
+
+    <!-- Plotly plot -->
     <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
 
-    <table hidden$="[[!debug]]">
-      <tr>
-        <td>
-          <div>
-            <p>Window size: [[slidingwindowsize]]</p>
-            <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
-            <p>Points on plot: [[countDataOnPlot]]</p>
-            <!--<p>Points plotted: [[countData]]</p>-->
-            <p>Classes number: [[classesnumber]]</p>
-            <p>Time taken to add the LAST point: [[performanceTime]]s </p>
-          </div>
-        </td>
-        <td>
-          <div id="perf-graph" style="width: 480px; height: 400px;"></div>
-        </td>
-        <td>
-          <div style="border: 2px solid green;padding: 25px;margin: 25px;">
-            Math Jax test inside the light-curve component:
-            <p id="mathJaxTest">
-            </p>
-            <p>
-              \[
-              \frac{-b\pm\sqrt{b^2-4ac}}{2a}
-              \]
-            </p>
-            <p id="mathjaxpolytest">
-              $5^{-15}$
-            </p>
-          </div>
-        </td>
-      </tr>
-    </table>
+
+
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+
+    <!-- Debug informations -->
+    <div hidden$="[[!debug]]" id="debug-div">
+      <table>
+        <tr>
+          <td>
+            <div>
+              <p>Window size: [[slidingwindowsize]]</p>
+              <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
+              <p>Points on plot: [[countDataOnPlot]]</p>
+              <!--<p>Points plotted: [[countData]]</p>-->
+              <p>Classes number: [[classesnumber]]</p>
+              <p>Time taken to add the LAST point: [[performanceTime]]s </p>
+            </div>
+          </td>
+          <td>
+            <div id="perf-graph" style="width: 480px; height: 400px;"></div>
+          </td>
+          <td>
+            <div style="border: 2px solid green;padding: 25px;margin: 25px;">
+              Math Jax test inside the light-curve component:
+              <p id="mathJaxTest">
+              </p>
+              <p>
+                \[
+                \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+                \]
+              </p>
+              <p id="mathjaxpolytest">
+                $5^{-15}$
+              </p>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
   </template>
 
 
   <script>
-  
+
     /**
      * `light-curve`
      * This element will display the light-curve plot
@@ -67,6 +126,7 @@
         this.countDataOnPlot = 0; // counts the points displayed
         this.performanceTime = 0;
         this.annotations = []; // the annotations are independent from the classes
+        this.annotationenabled = false;
       }
 
       ready() {
@@ -88,10 +148,14 @@
       ////////////////////////////////////////////////////////////////////////
       // @Private
       getClassColor(classIndex) {
-        var colors = ["#7a7a7a", "#5fa815", "#f18a03", "#ef0000","#f700d6", "#f700d6", "#f700d6"];  // grey , green, blue, orange, red, purple, purple....
+        // grey = #7a7a7a
+        // green = "#5fa815"
+        var colors = ["#0276f0", "#0276f0", "#f47a00", "#ef0000", "#f700d6", "#f700d6"];  // blue, blue, orange, red, purple, purple....
         return colors[classIndex];
       }
 
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
       resetPointsTraceLayout() {
         this.pointsTraceLayout.x = new Array();
         this.pointsTraceLayout.y = new Array();
@@ -199,11 +263,11 @@
           },
           xlabel: {
             type: String,
-            value: 'Label not set',
+            value: 'xlabel not set',
           },
           ylabel: {
             type: String,
-            value: 'Label not set',
+            value: 'ylabel not set',
           },
           classesnumber: {
             type: Number,
@@ -221,6 +285,18 @@
             type: Number,
             value: 1
           },
+          scrollzoom: {
+            type: Boolean,
+            value: false
+          },
+          showcontrols: {
+            type: Boolean,
+            value: true
+          },
+          debug: {
+            type: Boolean,
+            value: false
+          },
           stylestring: {
             type: String,
             computed: 'computeStyleString(width, height)'
@@ -236,10 +312,6 @@
           annotationsLayout: {
             type: Object,
             computed: 'computeAnnotationsLayout()'
-          },
-          debug: {
-            type: Boolean,
-            value: false
           }
         };
       }
@@ -354,10 +426,12 @@
         Plotly.relayout(this.getPlot(), this.layout);
       }
 
-      setTickDistance(dTick) {
+      setTickDistance() {
+        var tickDistance = parseInt(this.shadowRoot.querySelector("#dtickInput").value);
+        console.log(tickDistance)
         this.layout.xaxis["tickmode"] = 'linear';
         this.layout.xaxis["tick0"] = 0;
-        this.layout.xaxis["dtick"] = dTick;
+        this.layout.xaxis["dtick"] = tickDistance;
         Plotly.relayout(this.getPlot(), this.layout);
       }
 
@@ -389,13 +463,19 @@
 
       highlightsAnnotations() {
         //var _annotations = Array.from(this.annotations);
-        this.layout["annotations"] = this.annotations;
         //var _length = this.annotations.length-1;
         //console.log(this.annotations[_length]);
         //Plotly.relayout(this.getPlot(), 'annotations[1]');
+        this.layout["annotations"] = this.annotations;
+        this.annotationenabled = true;
         Plotly.relayout(this.getPlot(), this.layout);
       }
 
+      hideAnnotations() {
+        this.layout["annotations"] = [];
+        this.annotationenabled = false;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
 
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
 

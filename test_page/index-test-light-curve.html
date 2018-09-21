@@ -25,7 +25,7 @@
     <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
   -->
 
-  <!-- MathJax configuration
+  <!-- MathJax configuration-->
 
     <script type="text/javascript">
 
@@ -38,7 +38,7 @@
   </script>
 
   <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
--->
+
 
 
   <!--
@@ -90,67 +90,28 @@
         </div>
         <div>
 
-        <!--
-        <br>
-        <nav class="navbar navbar-default">
-          <div class="container-fluid">
-            <div class="navbar-header">
-              <a class="navbar-brand" href="#">Components</a>
-            </div>
-            <ul class="nav navbar-nav">
-              <li><a href="#" onclick="showComponent('navBarLCshow')">Light curve</a></li>
-              <li><a href="#" onclick="showComponent('navBarSLCshow')">Spectral Light Curve</a></li>
-              <li><a href="#" onclick="showComponent('navBarHISTshow')">Histogram</a></li>
-            </ul>
-          </div>
-        </nav>
-      -->
+
 
         <!-- LIGHT CURVE -->
 
         <div class="container-fluid" id="navBarLCshow">
-          <h2>light-curve</h2>
-            <div class="btn-group btn-group-justified">
-              <a href="#" class="btn btn-success" onclick="increaseSlidingWindowSize()">Increase window size</a>
-              <a href="#" class="btn btn-success" onclick="decreaseSlidingWindowSize()">Decrease window size</a>
-              <a href="#" class="btn btn-warning" onclick="setMaxSlidingWindowSize()">Max window size</a>
-              <a href="#" class="btn btn-warning" onclick="setMinSlidingWindowSize()">Min window size</a>
-            </div>
-            <div>
-              Tick distance: <input type="number" value=100 id="dtickInput"/>
-              <button class="btn btn-warning" onclick="setTickMode('linear')">Set tick distance</button>
-              <button class="btn btn-success" onclick="setTickMode('auto')">Set tick-mode = auto</button>
-            </div>
-            <div>
-              <button class="btn btn-primary" onclick="highlightUpperLimits()">Highlights upper limits</button>
-            </div>
-          <light-curve id="lightCurveWebcomp" width="1600px" height="600px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=5 debug=true></light-curve>
+          <h2>Light curve plot</h2>
+          <light-curve id="lightCurveWebcomp" width="1000px" height="600px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=100 debug=true></light-curve>
         </div>
-
-        <!-- SPECTRAL LIGHT CURVE
-
-        <div class="container-fluid" id="navBarSLCshow">
-          <h2>spectral-light-curve</h2>
-          <spectral-light-curve id="spectralLightCurveWebcomp" width="1800px" height="800px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></spectral-light-curve>
-        </div>
--->
-
-
-        <!-- HISTOGRAM
-        <div class="container-fluid" id="navBarHISTshow">
-          <h2>histogram</h2>
-          <histogram-data-quality id="histogramWebComp" width="1000px" height="600px" plottitle="Histogram" debug=true></histogram-data-quality>
-        </div>
-      -->
 
 
     </div>
 
 
 
+    <!--
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
 
-
-    <div style="border: 25px solid green;padding: 25px;margin: 25px;">
+    <div style="border: 2px solid green;padding: 25px;margin: 25px;">
       Math Jax Test:
       <div>
         Static loaded math:
@@ -261,7 +222,7 @@
 
       })
     </script>
-
+-->
 
 
 
@@ -452,9 +413,14 @@
       // parse the file
       $.get(filepath, function(result) {
 
+
+          realData = [];
           var rows = result.split("\n");
           rows.shift();
           console.log("Got real data. Number of records: ", rows.length);
+          console.log("Examples of real data: ", rows[0]);
+          console.log("Examples of real data: ", rows[1]);
+          console.log("Examples of real data: ", rows[2]);
 
           for(var i = 0; i < rows.length; i++){
 
@@ -487,6 +453,8 @@
               json_elements["error_y"] = parseFloat(elements[10]);
 
               // class
+              json_elements["tsRadix"] = parseFloat(elements[0]);
+
               var tsRadix = parseFloat(elements[0]);
               if(tsRadix <= 2.9)
                 json_elements["class"] = 0;
@@ -506,6 +474,8 @@
               console.log("Empty row found!");
             }
           }
+          console.log("Data loaded!");
+
 
           // find min and max flux:
           for(var i = 0; i < realData.length; i++){
@@ -601,39 +571,6 @@
     });
 
 
-
-
-
-
-    ///////////////////////////////////////////////////////////////////////////
-    // light-curve API
-    function increaseSlidingWindowSize() {
-      document.querySelector('#lightCurveWebcomp').increaseSlidingWindowSize();
-    }
-    function decreaseSlidingWindowSize() {
-      document.querySelector('#lightCurveWebcomp').decreaseSlidingWindowSize();
-    }
-    function setMaxSlidingWindowSize() {
-      document.querySelector('#lightCurveWebcomp').setMaxSlidingWindowSize();
-    }
-    function setMinSlidingWindowSize() {
-      document.querySelector('#lightCurveWebcomp').setMinSlidingWindowSize();
-    }
-    function setTickMode(mode) {
-      if (mode=='linear')
-      {
-        var tickDistance = $('#dtickInput').val();
-        document.querySelector('#lightCurveWebcomp').setTickDistance(tickDistance);
-      }
-      else if (mode=='auto')
-      {
-        document.querySelector('#lightCurveWebcomp').setTickAutoMode();
-      }
-    }
-    function highlightUpperLimits() {
-      document.querySelector('#lightCurveWebcomp').highlightUpperLimits();
-    }
-    ////////////////////////////////////////////////////////////////////////////
     </script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ../../nodejs-v8.11.3/load_node_module.sh
+module load node-v8.11.3
 
 # Styles
 cp -r ../components/plotly_components/styles/plotly-style.html styles/
