@@ -4,11 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <title>RTA-GUI-Components DEMO (branch SINGLE-TRACE)</title>
+    <title>RTA-GUI-Components DEMO</title>
 
     <!-- web components -->
     <link rel="import" href="/components/light-curve.html">
-    <link rel="import" href="/components/spectral-light-curve.html">
 
     <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -91,6 +90,7 @@
         </div>
         <div>
 
+        <!--
         <br>
         <nav class="navbar navbar-default">
           <div class="container-fluid">
@@ -104,6 +104,7 @@
             </ul>
           </div>
         </nav>
+      -->
 
         <!-- LIGHT CURVE -->
 
@@ -126,16 +127,21 @@
           <light-curve id="lightCurveWebcomp" width="1600px" height="600px" plottitle="Light Curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=5 debug=true></light-curve>
         </div>
 
-        <!-- SPECTRAL LIGHT CURVE -->
+        <!-- SPECTRAL LIGHT CURVE
 
         <div class="container-fluid" id="navBarSLCshow">
           <h2>spectral-light-curve</h2>
           <spectral-light-curve id="spectralLightCurveWebcomp" width="1800px" height="800px" plottitle="Spectral Light Curve" classesnumber=2 debug=true></spectral-light-curve>
         </div>
+-->
 
 
-
-        <!-- TODO HISTOGRAM -->
+        <!-- HISTOGRAM
+        <div class="container-fluid" id="navBarHISTshow">
+          <h2>histogram</h2>
+          <histogram-data-quality id="histogramWebComp" width="1000px" height="600px" plottitle="Histogram" debug=true></histogram-data-quality>
+        </div>
+      -->
 
 
     </div>
@@ -525,6 +531,7 @@
 
     ///////////////////////////////////////////////////////////////////////////
     // Navigation Bar
+    /*
     var navbarButtons = ["navBarLCshow","navBarSLCshow","navBarHISTshow"];
     function showComponent(compId) {
       navbarButtons.forEach(function(cId, index){
@@ -534,6 +541,7 @@
           $("#"+cId).hide();
       })
     }
+    */
 
 
     /////////////////////////////////////////////////////////////////////////////
@@ -548,13 +556,14 @@
 
       $("#sleeptime").hide();
 
-      showComponent("navBarLCshow");
+      //showComponent("navBarLCshow");
 
       ////////////////////////////////////////////////
       // General configurations
       document.querySelector('#lightCurveWebcomp').setPlotTitle("Light curve");
       document.querySelector('#lightCurveWebcomp').setAxisLalbes("MJD [days]", "$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$");
 
+      /*
       document.querySelector('#spectralLightCurveWebcomp').setPlotTitle("Spectral Light curve");
       document.querySelector('#spectralLightCurveWebcomp').setAxisLalbes("Energy [MeV]","$\\text{erg}\\text{cm}^{-2}\\text{s}^{-1}$");
 
@@ -572,7 +581,7 @@
                                                                       "$10^{-7}$","","","","","","","","",
                                                                       "$10^{-6}$","","","","","","","","",
                                                                       "$10^{-5}$","","","","","","","",""]);
-
+      */
       $('#dt').text(" 1000 ms");
       $('#dt').css("font-size", "16px"); // to fix
 

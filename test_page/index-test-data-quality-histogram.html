@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>RTA-GUI-Components DEMO</title>
+
+    <!-- web components -->
+    <link rel="import" href="/components/data-quality-histogram.html">
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+
+      <h1>RTA-GUI-Components Testpage</h1>
+
+      <div class="container-fluid" id="startbuttons">
+        <div class="btn-group btn-group-justified">
+          <a href="#" id="startRandomData" class="btn btn-success"  onclick="startGeneratingData()">Start feed random data</a>
+          <a href="#" id="resetPlot"       class="btn btn-danger"   onclick="resetPlot()">Reset plot</a>
+        </div>
+        <input id="histnewpoint" type="number"></input>
+      </div>
+
+      <!-- HISTOGRAM -->
+      <div class="container-fluid">
+        <h2>histogram</h2>
+        <data-quality-histogram id="dataQualityHistogramWebComp" width="1000px" height="600px" plottitle="Data Quality Histogram" xlabel="Energy bins" ylabel="Counts" debug=true></data-quality-histogram>
+      </div>
+
+    </div>
+
+
+
+
+    <script>
+
+    function generateRndIntensity(start, stop) {
+      var rnd = Math.random() * (stop - start) + start;
+      //Math.floor(Math.random() * 10);
+      return rnd;
+    }
+
+    function resetPlot() {
+       document.querySelector('#dataQualityHistogramWebComp').resetPlot();
+
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Generating data
+
+    var intervalTime = 400;
+
+    function startGeneratingData(mode) {
+
+      interval = setInterval(function(){
+
+
+          var randomIntensity = generateRndIntensity(0,1);
+
+          //var newp = parseInt($('#histnewpoint').val());
+          document.querySelector('#dataQualityHistogramWebComp').addPoint(randomIntensity);
+
+
+      }, intervalTime);
+    }
+
+    function stopGeneratingData() {
+       clearInterval(interval);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    // ON READY
+
+    $('document').ready(function() {
+      var minenergy = 0;
+      var binsize = 0.01;
+      var maxenergy = 1;
+      console.log(minenergy, maxenergy, binsize);
+      document.querySelector('#dataQualityHistogramWebComp').configure(minenergy, maxenergy, binsize);
+
+
+
+    });
+
+
+
+    </script>
+  </body>
+</html>
