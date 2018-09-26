@@ -15,6 +15,7 @@ if ( ! fs.existsSync('./'+filename)) {
 app.use('/static', express.static(path.join(__dirname, '/examples')))
 app.use("/imports", express.static(path.join(__dirname, '/imports')));
 app.use("/styles", express.static(path.join(__dirname, '/styles')));
+app.use("/real_data", express.static(path.join(__dirname, '/real_data')));
 
 app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')))
 

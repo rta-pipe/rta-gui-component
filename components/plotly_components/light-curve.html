@@ -10,6 +10,9 @@
     <style include="plotly-style"></style>
 
     <style>
+      #webcomp-container {
+        background-color: white;
+      }
       #control-div {
         padding: 20px 20px 20px 20px;
       }
@@ -36,71 +39,72 @@
       }
     </style>
 
-
-    <!-- Controls buttons -->
-    <div hidden$="[[!showcontrols]]" id="control-div">
-      <div>
-        <button class="grey_button" on-click="increaseSlidingWindowSize">Increase window size by 1</a>
-        <button class="grey_button" on-click="decreaseSlidingWindowSize">Decrease window size by 1</a>
-        <button class="grey_button" on-click="setMaxSlidingWindowSize">Max window size</a>
-        <button class="grey_button" on-click="setMinSlidingWindowSize">Min window size</a>
+    <div id="webcomp-container">
+      <!-- Controls buttons -->
+      <div hidden$="[[!showcontrols]]" id="control-div">
+        <div>
+          <button class="grey_button" on-click="increaseSlidingWindowSize">Increase window size by 1</a>
+          <button class="grey_button" on-click="decreaseSlidingWindowSize">Decrease window size by 1</a>
+          <button class="grey_button" on-click="setMaxSlidingWindowSize">Max window size</a>
+          <button class="grey_button" on-click="setMinSlidingWindowSize">Min window size</a>
+        </div>
+        <div>
+          Tick distance: <input type="number" value=100 id="dtickInput"/>
+          <button class="grey_button" on-click="setTickDistance">Set ticks distance</button>
+          <button class="grey_button" on-click="setTickAutoMode">Set auto ticks distance</button>
+        </div>
+        <div>
+          <button class="grey_button" hidden$="[[annotationenabled]]" on-click="highlightsAnnotations">Shows upper limits</button>
+          <!--<button class="grey_button" hidden$="[[!annotationenabled]]" on-click="hideAnnotations">Hide the upper limits</button>-->
+        </div>
       </div>
-      <div>
-        Tick distance: <input type="number" value=100 id="dtickInput"/>
-        <button class="grey_button" on-click="setTickDistance">Set ticks distance</button>
-        <button class="grey_button" on-click="setTickAutoMode">Set auto ticks distance</button>
+
+      <!-- Plotly plot -->
+      <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
+
+
+
+          <br>
+          <br>
+          <br>
+          <br>
+          <br>
+
+      <!-- Debug informations -->
+      <div hidden$="[[!debug]]" id="debug-div">
+        <table>
+          <tr>
+            <td>
+              <div>
+                <p>Window size: [[slidingwindowsize]]</p>
+                <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
+                <p>Points on plot: [[countDataOnPlot]]</p>
+                <!--<p>Points plotted: [[countData]]</p>-->
+                <p>Classes number: [[classesnumber]]</p>
+                <p>Time taken to add the LAST point: [[performanceTime]]s </p>
+              </div>
+            </td>
+            <td>
+              <div id="perf-graph" style="width: 480px; height: 400px;"></div>
+            </td>
+            <td>
+              <div style="border: 2px solid green;padding: 25px;margin: 25px;">
+                Math Jax test inside the light-curve component:
+                <p id="mathJaxTest">
+                </p>
+                <p>
+                  \[
+                  \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+                  \]
+                </p>
+                <p id="mathjaxpolytest">
+                  $5^{-15}$
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
       </div>
-      <div>
-        <button class="grey_button" hidden$="[[annotationenabled]]" on-click="highlightsAnnotations">Shows upper limits</button>
-        <!--<button class="grey_button" hidden$="[[!annotationenabled]]" on-click="hideAnnotations">Hide the upper limits</button>-->
-      </div>
-    </div>
-
-    <!-- Plotly plot -->
-    <div id="light-curve-div" style="{{stylestring}}"></div> <!--style="width:600px;height:400px;"-->
-
-
-
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-
-    <!-- Debug informations -->
-    <div hidden$="[[!debug]]" id="debug-div">
-      <table>
-        <tr>
-          <td>
-            <div>
-              <p>Window size: [[slidingwindowsize]]</p>
-              <p>Sliding window range size: ([[slidingwindowminsize]] , [[slidingwindowmaxsize]])</p>
-              <p>Points on plot: [[countDataOnPlot]]</p>
-              <!--<p>Points plotted: [[countData]]</p>-->
-              <p>Classes number: [[classesnumber]]</p>
-              <p>Time taken to add the LAST point: [[performanceTime]]s </p>
-            </div>
-          </td>
-          <td>
-            <div id="perf-graph" style="width: 480px; height: 400px;"></div>
-          </td>
-          <td>
-            <div style="border: 2px solid green;padding: 25px;margin: 25px;">
-              Math Jax test inside the light-curve component:
-              <p id="mathJaxTest">
-              </p>
-              <p>
-                \[
-                \frac{-b\pm\sqrt{b^2-4ac}}{2a}
-                \]
-              </p>
-              <p id="mathjaxpolytest">
-                $5^{-15}$
-              </p>
-            </div>
-          </td>
-        </tr>
-      </table>
     </div>
   </template>
 
@@ -176,9 +180,9 @@
         this.resetPointsTraceLayout();
 
         if(! isFirstLoad)
-          Plotly.react( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: true});
+          Plotly.react( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: this.scrollzoom});
         else
-          Plotly.newPlot( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: true});
+          Plotly.newPlot( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: this.scrollzoom});
 
       }
 

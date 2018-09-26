@@ -24,7 +24,9 @@
 
       <div class="container-fluid" id="startbuttons">
         <div class="btn-group btn-group-justified">
-          <a href="#" id="startRandomData" class="btn btn-success"  onclick="startGeneratingData()">Start feed random data</a>
+          <a href="#" id="loadData1"       class="btn btn-primary"  onclick="loadRealData('real_data/gammaness_evt3.txt')">Load gammaness evt3 astri</a>
+          <a href="#" id="startRandomData" class="btn btn-success"  onclick="startGeneratingRandomData()">Start feed random data</a>
+          <a href="#" id="startRealData"   class="btn btn-success"  onclick="startGeneratingRealData()">Start feed real data</a>
           <a href="#" id="resetPlot"       class="btn btn-danger"   onclick="resetPlot()">Reset plot</a>
         </div>
         <input id="histnewpoint" type="number"></input>
@@ -33,7 +35,7 @@
       <!-- HISTOGRAM -->
       <div class="container-fluid">
         <h2>histogram</h2>
-        <data-quality-histogram id="dataQualityHistogramWebComp" width="1000px" height="600px" plottitle="Data Quality Histogram" xlabel="Energy bins" ylabel="Counts" debug=true></data-quality-histogram>
+        <data-quality-histogram id="dataQualityHistogramWebComp" width="1000px" height="600px" plottitle="Data Quality Histogram" xlabel="Gammaness" ylabel="Number of events" debug=true></data-quality-histogram>
       </div>
 
     </div>
@@ -57,9 +59,9 @@
     ////////////////////////////////////////////////////////////////////////////
     // Generating data
 
-    var intervalTime = 400;
+    var intervalTime = 100;
 
-    function startGeneratingData(mode) {
+    function startGeneratingRandomData(mode) {
 
       interval = setInterval(function(){
 
@@ -73,8 +75,55 @@
       }, intervalTime);
     }
 
+    var interval;
+    var index_for_real_data = 0;
+
+    function startGeneratingRealData(mode) {
+
+      interval = setInterval(function(){
+
+
+        if(realData.length == 0)
+          console.log("Error: realData list is empty");
+
+          document.querySelector('#dataQualityHistogramWebComp').addPoint(  realData[index_for_real_data]  );
+          index_for_real_data += 1;
+          if(index_for_real_data == realData.length)
+            stopGeneratingData();
+
+
+
+      }, intervalTime);
+    }
+
     function stopGeneratingData() {
+      index_for_real_data = 0;
        clearInterval(interval);
+    }
+
+
+    var realData = [];
+
+    ///////////////////////////////////////////////////////////////////////////
+    // real data loading..
+    function loadRealData(filepath) {
+
+      console.log("Loading ",filepath);
+      // parse the file
+      $.get(filepath, function(result) {
+          realData = result.split(" ");
+          console.log("Got real data. Number of records: ", realData.length);
+          console.log("Examples of real data: ", realData[0]);
+          console.log("Examples of real data: ", realData[1]);
+          console.log("Examples of real data: ", realData[2]);
+
+          if(realData.length > 0){
+            console.log("Data loaded!");
+            $("#startRealData").show();
+          }
+          else
+            console.log("Empty row found!");
+      });
     }
 
 
@@ -91,6 +140,7 @@
       var maxenergy = 1;
       console.log(minenergy, maxenergy, binsize);
       document.querySelector('#dataQualityHistogramWebComp').configure(minenergy, maxenergy, binsize);
+      $("#startRealData").hide();
 
 
 

@@ -449,15 +449,22 @@
               }
 
               // errors
-              json_elements["error_x"] = 0.5;
+
+              var times_mjd = elements[6].split("/"); //54313.5/54314.5
+              var start_mjd = times_mjd[0];
+              var stop_mjd = times_mjd[1];
+              json_elements["error_x"] = (stop_mjd-start_mjd)/2;
+
               json_elements["error_y"] = parseFloat(elements[10]);
 
               // class
               json_elements["tsRadix"] = parseFloat(elements[0]);
 
               var tsRadix = parseFloat(elements[0]);
-              if(tsRadix <= 2.9)
+              if(tsRadix <= 2.9){
                 json_elements["class"] = 0;
+                json_elements["error_y"] = 0;
+              }
               else if(tsRadix > 2.9 && tsRadix < 4)
                 json_elements["class"] = 1;
               else if(tsRadix > 4 && tsRadix <= 5)
