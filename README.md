@@ -36,8 +36,6 @@ In order to test the Polymer components, an Express (Node.js) server has been se
 This element will display the light-curve plot. The light curve plot show the intensity of an astrophysical source with respect to time. Each point has a vertical and horizontal error bar or it can have an upper limit (an arrow facing down). The points can have different colors, depending on their class.
 
 ### Static Configurations
-* [height] : height of the plot (default = 400px)
-* [width] : width of the plot (default = 400px)
 * [plottitle] : label of the plot title (default = 'Title not set')
 * [xlabel] : label of the x axis (default = 'xlabel not set')
 * [ylabel] : label of the y axis (default = 'ylabel not set')
@@ -51,7 +49,7 @@ This element will display the light-curve plot. The light curve plot show the in
 
 Example
 
-\<light-curve id="lightCurveWebcomp" width="1000px" height="400px" plottitle="Light Curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5 debug=true\>\<\/light-curve\>
+\<light-curve id="lightCurveWebcomp" plottitle="Light Curve" xLabel="MJD" ylabelmin=0 ylabelmax=9 classesnumber=3 slidingwindowSize=5 debug=true\>\<\/light-curve\>
 
 ### API
 * setPlotTitle(title);
@@ -69,7 +67,7 @@ Example
 * resetPlot();
 
 ### Issues
-* Performance decreases as the number of points to display increases. Possibile fixes: using extendTraces, grouping points in packets.
+* Performance decreases when annotation (to display upper limits) are used.
 * Can't pass MathJax string as an attribute value (e.g. <light-curve yLabel="$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$"></light-curve>)
 
 
@@ -91,7 +89,24 @@ Example
 ### Issues
 
 
-## \<histogram\>
+## \<data-quality-histogram\>
+### Description
+This element will display the data-quality-histogram plot.
+
+### Static Configurations
+* [plottitle] : label of the plot title (default = 'Title not set')
+* [xlabel] : label of the x axis (default = 'xlabel not set')
+* [ylabel] : label of the y axis (default = 'ylabel not set')
+
+Example
+
+\<data-quality-histogram id="dqHistogramWebcomp" plottitle="Data Quality Histogram" xLabel="Poperty value" yLabel="Count events"\>\<\/data-quality-histogram\>
+
+### API
+* configure(mine, maxe, eis);
+  * set the minimum and the maximum value of the x axis and the bin size.
+* addPoint(x);
+* resetPlot();
 
 
 # Development
