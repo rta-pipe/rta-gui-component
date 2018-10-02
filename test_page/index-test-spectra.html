@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>RTA-GUI-Components DEMO</title>
+
+    <!-- web components -->
+    <link rel="import" href="/components/spectra.html">
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!--
+    For a Boolean property to be configurable from markup, it must default to false. If it defaults to true,
+    you cannot set it to false from markup, since the presence of the attribute, with or without a value,
+    equates to true. This is the standard behavior for attributes in the web platform.
+    If this behavior doesn't fit your use case, you can use a string-valued or number-valued attribute instead.
+
+    For object and array properties you can pass an object or array in JSON format:
+    <my-element book='{ "title": "Persuasion", "author": "Austen" }'></my-element>
+  -->
+
+  <!-- MathJax configuration-->
+
+    <script type="text/javascript">
+
+      window.MathJax = {
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+          processEscapes: true
+        }
+      };
+  </script>
+
+  <script type="text/javascript" src="/bower_components/MathJax/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+
+
+
+  <!--
+    MathJax.Hub.Config({
+      extensions: ["tex2jax.js"],
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+      },
+      "HTML-CSS": { fonts: ["TeX"] }
+    });
+  -->
+
+
+
+<!-- /var/www/html/spot6/cat2/js/MathJax -->
+
+
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+      <h1>RTA-GUI-Components Testpage</h1>
+        <div class="container-fluid" id="startbuttons">
+          <div class="btn-group btn-group-justified">
+            <a href="#" id="loadData1"       class="btn btn-primary"  onclick="loadRealData('/static/light_curve.txt')">Load light_curve.txt</a>
+            <a href="#" id="loadData2"       class="btn btn-primary"  onclick="loadRealData('/static/lc1_ff1gifixed_run14.txt')">Load lc1_ff1gifixed_run14.txt</a>
+            <a href="#" id="startRealData"   class="btn btn-success"  onclick="startGeneratingData('real')">Start feed real data</a>
+            <a href="#" id="startRandomData" class="btn btn-success"  onclick="startGeneratingData('random')">Start feed random data</a>
+            <a href="#" id="resetPlot"       class="btn btn-danger"   onclick="resetPlot()">Reset plot</a>
+          </div>
+        </div>
+
+        <br>
+        <div class="container-fluid" id="confButtons">
+          <div class="btn-group btn-group-justified">
+            <a href="#" id="decrDTreal"   class="btn btn-warning"  onclick="changeDataRate(-1)">Decrease sleep between data generation</a>
+            <a href="#" id="incrDTreal"   class="btn btn-warning"  onclick="changeDataRate(1)">Increase sleep between data generation</a>
+            <a href="#" id="stopData"     class="btn btn-danger"   onclick="stopGeneratingData()" hidden>Stop feed data</a>
+          </div>
+        </div>
+
+        <br>
+        <div id="sleeptime" style="border: 2px solid green;padding: 25px;margin: 25px; text-align: center; font-size: 25px;">
+          Sleep time: <p id="dt"></p>
+        </div>
+        <div>
+
+
+
+        <!-- SPECTRA -->
+
+        <div class="container-fluid" id="navBarLCshow">
+          <h2>Spectra plot</h2>
+          <spectra-lc id="spectraWebcomp" plottitle="Spectral light curve" xLabel="MJD [days]"  classesnumber=4 slidingwindowSize=100 debug=true></spectra-lc>
+        </div>
+
+
+    </div>
+
+
+
+    <div style="border: 2px solid green;padding: 25px;margin: 25px;">
+      Math Jax Test:
+      <div>
+        Static loaded math:
+        <p id="mathJaxTest"></p>
+      </div>
+      <div>
+        Dynamic loaded math:
+        <p id="mathJaxAsyncTest"></p>
+
+      </div>
+      <p>
+        \[
+        \frac{-b\pm\sqrt{b^2-4ac}}{2a}
+        \]
+      </p>
+    </div>
+
+
+
+
+    <script>
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Randomness
+    var count = 0;
+    function flipCoin() {
+      if(Math.random()>0.5)
+        return true;
+      else
+        return false;
+    }
+    function generateRndText() {
+      var text = "";
+      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for (var i = 0; i < 5; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      return text;
+    }
+    function generateRndIntensity() {
+      var rnd = Math.floor(Math.random() * 10);
+      return rnd;
+    }
+    function getIntensityClassForRandomData(rnd) {
+      // decide class
+      var pointClass;
+      if(rnd <= 3)
+        pointClass = 0; //2
+      else if(rnd > 3 && rnd <=6)
+        pointClass = 1; // 1
+      else
+        pointClass = 2;
+
+      return pointClass;
+    }
+    function getRandomError(){
+      return Math.floor(Math.random() * 3);
+    }
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Generating data
+    var dataGenMode = null;
+
+    var x_for_random;
+
+    var realData = [];
+    var index_for_real_data;
+    var fluxMin = 100000;
+    var fluxMax = 0;
+
+    var interval;
+    var intervalTime = 1000;
+
+    function startGeneratingData(mode) {
+      $("#startbuttons").hide();
+      $("#confButtons").show();
+      $("#sleeptime").show();
+
+      if(mode == 'real')
+      {
+        dataGenMode = mode;
+        index_for_real_data = 0;
+
+
+      }
+      else if (mode == 'random')
+      {
+        dataGenMode = mode;
+        x_for_random = 0;
+
+        document.querySelector('#spectraWebcomp').addLine(500000,3,0,3,"rgb(50, 171, 96)",2,"dashdot");
+      }
+      else
+      {
+        console.log("Error, mode??",mode);
+        return;
+      }
+      interval = setInterval(function(){
+
+        if( mode == 'random' )
+        {
+          console.log("Random data gen");
+
+          var randomIntensity = generateRndIntensity();
+          var intensityClass = getIntensityClassForRandomData(randomIntensity);
+          var rndError = getRandomError();
+          x_for_random = x_for_random + 5;
+
+
+
+          document.querySelector('#spectraWebcomp').addPoint(
+                                                        generateRndText(),
+                                                        x_for_random,
+                                                        randomIntensity,
+                                                        rndError,
+                                                        rndError,
+                                                        rndError,
+                                                        rndError,
+                                                        flipCoin(),
+                                                        intensityClass
+                                                      );
+        }
+        else if( mode == 'real' )
+        {
+          console.log("New real data: ",realData[index_for_real_data] );
+
+          if(realData.length == 0)
+            console.log("Error: realData list is empty");
+
+            document.querySelector('#spectraWebcomp').addPoint(
+                                                          realData[index_for_real_data].text,
+                                                          realData[index_for_real_data].x,
+                                                          realData[index_for_real_data].y,
+                                                          realData[index_for_real_data].error_x,
+                                                          realData[index_for_real_data].error_x,
+                                                          realData[index_for_real_data].error_y,
+                                                          realData[index_for_real_data].error_y,
+                                                          realData[index_for_real_data].isUpperLimit,
+                                                          realData[index_for_real_data].class
+                                                        );
+            index_for_real_data += 1;
+            if(index_for_real_data == realData.length)
+              stopGeneratingData();
+
+
+        }
+      }, intervalTime);
+    }
+    function stopGeneratingData() {
+      $("#startbuttons").show();
+      //$("#startRandomData").show();
+      $("#confButtons").hide();
+      $("#sleeptime").hide();
+
+
+      clearInterval(interval);
+    }
+    function changeDataRate(offset) {
+      if(dataGenMode==null){
+        console.log("Error dataGenMode=Null")
+        return;
+      }
+
+      stopGeneratingData();
+      if(offset<0 && intervalTime>200)
+        intervalTime = intervalTime - 200;
+
+      if(offset>0 && intervalTime<4000)
+        intervalTime = intervalTime + 200;
+
+      $('#dt').text(intervalTime+" ms");
+
+      startGeneratingData(dataGenMode);
+
+    }
+    function resetPlot() {
+      document.querySelector('#spectraWebcomp').resetPlot();
+      dataGenMode = null;
+    }
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // real data loading..
+    function loadRealData(filepath) {
+
+      console.log("Loading ",filepath);
+      // parse the file
+      $.get(filepath, function(result) {
+
+
+          realData = [];
+          var rows = result.split("\n");
+          rows.shift();
+          console.log("Got real data. Number of records: ", rows.length);
+          console.log("Examples of real data: ", rows[0]);
+          console.log("Examples of real data: ", rows[1]);
+          console.log("Examples of real data: ", rows[2]);
+
+          for(var i = 0; i < rows.length; i++){
+
+            if( (rows[i].trim()).length > 0 ){
+
+
+              var elements = rows[i].split(" ");
+              var json_elements = {};
+
+              // text
+              json_elements["text"] = elements[6]+elements[1]+elements[2];
+
+              // x
+              json_elements["x"] = parseXValue(elements[6]);
+
+              // y
+              if(elements[0] <= 2.9)
+              {
+                json_elements["y"] = parseFloat(elements[11]);
+                json_elements["isUpperLimit"] = true;
+              }
+              else
+              {
+                json_elements["y"] = parseFloat(elements[9]);
+                json_elements["isUpperLimit"] = false;
+              }
+
+              // errors
+
+              var times_mjd = elements[6].split("/"); //54313.5/54314.5
+              var start_mjd = times_mjd[0];
+              var stop_mjd = times_mjd[1];
+              json_elements["error_x"] = (stop_mjd-start_mjd)/2;
+
+              json_elements["error_y"] = parseFloat(elements[10]);
+
+              // class
+              json_elements["tsRadix"] = parseFloat(elements[0]);
+
+              var tsRadix = parseFloat(elements[0]);
+              if(tsRadix <= 2.9){
+                json_elements["class"] = 0;
+                json_elements["error_y"] = 0;
+              }
+              else if(tsRadix > 2.9 && tsRadix < 4)
+                json_elements["class"] = 1;
+              else if(tsRadix > 4 && tsRadix <= 5)
+                json_elements["class"] = 2;
+              else if(tsRadix > 5)
+                json_elements["class"] = 3;
+              else
+                console.log("Error. cant assign class. sqrtts : ",elements[0]);
+
+              realData.push(json_elements);
+            }
+            else
+            {
+              console.log("Empty row found!");
+            }
+          }
+          console.log("Data loaded!");
+
+
+          // find min and max flux:
+          for(var i = 0; i < realData.length; i++){
+            if(realData[i]["y"] > fluxMax) {
+              fluxMax = realData[i]["y"];
+            }
+            if(realData[i]["y"] < fluxMin) {
+              fluxMin = realData[i]["y"];
+            }
+          }
+          console.log("flux max and min:", fluxMax, fluxMin)
+
+          $("#startRealData").show();
+
+      });
+    }
+    function parseXValue(xString){
+      var times = xString.split("/");
+      return (parseFloat(times[0])+parseFloat(times[1]))/2;
+    }
+
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Navigation Bar
+    /*
+    var navbarButtons = ["navBarLCshow","navBarSLCshow","navBarHISTshow"];
+    function showComponent(compId) {
+      navbarButtons.forEach(function(cId, index){
+        if(cId==compId)
+          $("#"+cId).show();
+        else
+          $("#"+cId).hide();
+      })
+    }
+    */
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    // ON READY
+
+    $('document').ready(function() {
+
+
+      $("#startRealData").hide();
+
+      $("#confButtons").hide();
+
+      $("#sleeptime").hide();
+
+      //showComponent("navBarLCshow");
+
+      ////////////////////////////////////////////////
+      // General configurations
+      document.querySelector('#spectraWebcomp').setPlotTitle("Spectral light curve");
+      document.querySelector('#spectraWebcomp').setAxisLalbes("Energy [MeV]","$\\text{erg}\\text{cm}^{-2}\\text{s}^{-1}$");
+
+
+
+
+      document.querySelector('#spectraWebcomp').setAxisTickText(
+                                                                    [ "$10^{1}$","","","","","","","","",
+                                                                      "$10^{2}$","","","","","","","","",
+                                                                      "$10^{3}$","","","","","","","","",
+                                                                      "$10^{4}$","","","","",""],
+                                                                    [ "$10^{-13}$","","","","","","","","",
+                                                                      "$10^{-12}$","","","","","","","","",
+                                                                      "$10^{-11}$","","","","","","","","",
+                                                                      "$10^{-10}$","","","","","","","","",
+                                                                      "$10^{-9}$","","","","","","","","",
+                                                                      "$10^{-8}$","","","","","","","","",
+                                                                      "$10^{-7}$","","","","","","","","",
+                                                                      "$10^{-6}$","","","","","","","","",
+                                                                      "$10^{-5}$","","","","","","","",""]);
+
+      $('#dt').text(" 1000 ms");
+      $('#dt').css("font-size", "16px"); // to fix
+
+
+
+
+      $('#mathJaxTest').text("$10^{-13}$");
+
+      // use setTimeout() to execute
+      setTimeout(function(){
+        $('#mathJaxAsyncTest').text("$5^{-15}$");
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,"mathJaxAsyncTest"]);
+      }, 2000)
+
+
+
+    });
+
+
+    </script>
+  </body>
+</html>

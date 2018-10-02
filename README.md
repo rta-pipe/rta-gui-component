@@ -71,23 +71,6 @@ Example
 * Can't pass MathJax string as an attribute value (e.g. <light-curve yLabel="$\\text{ [10}^{-8}\\text{ph }\\text{cm}^{-2}\\text{ s}^{-1}\\text{]}$"></light-curve>)
 
 
-## \<spectral-light-curve\>
-### Description
-### Configurations
-* height and width of the plot
-* title and axis labels
-* number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
-* Debug mode: display informations and a performance plot
-### API
-* setPlotTitle(title);
-* setAxisLabels(xLabel, yLabel);
-* setAxisTickText(xTickText, yTickText);
-* setYlimits(ymin,ymax);
-* addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
-* resetPlot();
-
-### Issues
-
 
 ## \<data-quality-histogram\>
 ### Description
