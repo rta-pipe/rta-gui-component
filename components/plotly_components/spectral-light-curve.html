@@ -23,7 +23,7 @@
 
 
 
-    <div id="spectral-light-curve-div" style="{{stylestring}}"></div>
+    <div id="spectral-light-curve-div" ></div> <!-- style="{{stylestring}}" -->
 
 
   </template>
@@ -119,7 +119,31 @@
         this.annotations = []; // the annotations are independent from the classes
 
         this.performanceTime = 0;
+
+        this.customListeners = {
+          _resizePlotListener: function() {
+            let plotDiv = this.getPlot()
+            Plotly.Plots.resize(plotDiv);
+          }
+        }
+        this._boundListener = this.customListeners._resizePlotListener.bind(this);
       }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('resize', this._boundListener);
+      }
+
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('onresize', this._boundListener);
+      }
+
 
       // selector
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
@@ -152,6 +176,21 @@
       ready() {
         super.ready();
         this.initPlot();
+      }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('resize', this._boundListener);
+      }
+
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('onresize', this._boundListener);
       }
 
       initPlot() {
@@ -206,6 +245,7 @@
             type: String,
             value: 'light-curve'
           },
+          /*
           width: {
             type: String,
             value: "400px"
@@ -214,6 +254,7 @@
             type: String,
             value: "400px"
           },
+          */
           plottitle: {
             type: String,
             value: 'Title not set'
@@ -230,10 +271,12 @@
             type: Number,
             value: 2
           },
+          /*
           stylestring: {
             type: String,
             computed: 'computeStyleString(width, height)'
           },
+          */
           layout: {
             type: Object,
             computed: 'computeLayout(plottitle, xlabel, ylabel)'
@@ -252,9 +295,11 @@
           }
         };
       }
+      /*
       computeStyleString(width, height) {
         return "width:"+width+"; height:"+height+";"
       }
+      */
       computeLayout(plottitle, xlabel, ylabel) {
         return {
           showlegend: false,
