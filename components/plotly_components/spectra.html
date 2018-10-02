@@ -4,121 +4,57 @@
 
 <!--<link rel="import" href = "/imports/mathJax-import.html">-->
 
+<!--
+README DOC
+## \<spectral-light-curve\>
+### Description
+### Configurations
+* height and width of the plot
+* title and axis labels
+* number of point classes (each class, from 0 to n-1, has a certain color) (MAX 5 classes, default = 2)
+* Debug mode: display informations and a performance plot
+### API
+* setPlotTitle(title);
+* setAxisLabels(xLabel, yLabel);
+* setAxisTickText(xTickText, yTickText);
+* setYlimits(ymin,ymax);
+* addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass);
+* resetPlot();
 
-<dom-module id="spectral-light-curve">
+### Issues
+
+
+-->
+<dom-module id="spectra-lc">
   <template>
     <style include="plotly-style"></style>
-    <table hidden$="[[!debug]]">
-      <tr>
-        <td>
-          <div>
-            <p>Points on plot: [[countDataOnPlot]]</p>
-            <!--<p>Points plotted: [[countData]]</p>-->
-            <p>Classes number: [[classesnumber]]</p>
-            <p>Time taken to add the LAST point: [[performanceTime]]s </p>
-          </div>
-        </td>
-      </tr>
-    </table>
 
-
-
-    <div id="spectral-light-curve-div" ></div> <!-- style="{{stylestring}}" -->
-
+    <div id="spectra-lc-div" ></div> <!-- style="{{stylestring}}" -->
 
   </template>
 
   <script>
 
-  function TraceClass(className, color){
-    this.className = className;
-    this.color = color;
-    this.text_data = [];
-    this.x_data = [];
-    this.y_data = [];
-    // asymmetric error bars
-    this.error_x_data = [];
-    this.error_x_data_minus = [];
-    this.error_y_data = [];
-    this.error_y_data_minus = [];
-  }
-
-  TraceClass.prototype.shiftDataArrays = function(shiftLength) {
-    for(var i=0; i < shiftLength; i++){
-      this.text_data.shift();
-      this.x_data.shift();
-      this.y_data.shift();
-      this.error_x_data.shift();
-      this.error_x_data_minus.shift();
-      this.error_y_data.shift();
-      this.error_y_data_minus.shift();
-    }
-  };
-
-  TraceClass.prototype.feed = function(text, x, y, err_x, err_x_minus, err_y, err_y_minus) {
-    this.text_data.push(text);
-    this.x_data.push(x);
-    this.y_data.push(y);
-    this.error_x_data.push(err_x);
-    this.error_x_data_minus.push(err_x_minus);
-    this.error_y_data.push(err_y);
-    this.error_y_data_minus.push(err_y_minus);
-  }
-
-  TraceClass.prototype.getTraceForPlotly = function(generalTraceLayout) {
-    var _text_data = Array.from(this.text_data);
-    var _x_data = Array.from(this.x_data);
-    var _y_data = Array.from(this.y_data);
-    var _err_x_data = Array.from(this.error_x_data);
-    var _err_x_data_minus = Array.from(this.error_x_data_minus);
-    var _err_y_data = Array.from(this.error_y_data);
-    var _err_y_data_minus = Array.from(this.error_y_data_minus);
-
-
-    var trace = JSON.parse(JSON.stringify(generalTraceLayout));
-
-    trace["text"] = _text_data;
-    trace["x"] = _x_data;
-    trace["y"] = _y_data;
-    trace["marker"]["color"] = this.color;
-
-    // error bars
-    trace["error_x"]["array"] = _err_x_data;
-    trace["error_x"]["arrayminus"] = _err_x_data_minus;
-    trace["error_x"]["color"] = this.color;
-
-    trace["error_y"]["array"] = _err_y_data;
-    trace["error_y"]["arrayminus"] = _err_y_data_minus;
-    trace["error_y"]["color"] = this.color;
-
-    return trace;
-
-  }
-
     /**
-     * `spectral-light-curve`
-     * This element will display the spectral-light-curve plot
+     * `spectra-lc`
+     * This element will display the spectra plot
      *
      * @customElement
      * @polymer
      * @demo demo/index.html
      */
-    class SpectralLightCurve extends Polymer.Element {
+    class SpectraLc extends Polymer.Element {
 
       // private properties
       constructor() {
         super();
-        this.plotName = 'spectral-light-curve-div';
+        this.plotName = 'spectra-lc-div';
 
 
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
-
-        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
-
         this.annotations = []; // the annotations are independent from the classes
-
-        this.performanceTime = 0;
+        this.annotationenabled = false;
 
         this.customListeners = {
           _resizePlotListener: function() {
@@ -128,6 +64,13 @@
         }
         this._boundListener = this.customListeners._resizePlotListener.bind(this);
       }
+
+      ready() {
+        super.ready();
+        this.initPlot(true);
+      }
+
+
 
       ////////////////////////////////////////////////////////////////////////
       // @Private
@@ -148,89 +91,76 @@
       // selector
       getPlot() { return this.shadowRoot.querySelector("#"+this.plotName); }
 
-      // counts all the points of every container (TraceClass)
-      getTotalPoints() {
-        var sum = 0;
-        for(var i = 0; i < this.classesnumber; i++)
-            sum += this.dataArrays[i].y_data.length;
-        return sum;
-      }
+
       getClassColor(classesNumber, classIndex) {
-
-        if ( classesNumber == 1 )
-          var colors = ["#04f2f2"];    // light blue
-        else if( classesNumber == 2)
-          var colors = ["black", "red"];
-        else if( classesNumber == 3)
-          var colors = ["#04f2f2", "#f18a03", "#ef0000"]; // light blue, orange, red
-        else if( classesNumber == 4)
-          var colors = ["#04f2f2", "#003cef", "#f18a03", "#ef0000"]; // light blue, blue, orange, red
-        else if( classesNumber == 5)
-          var colors = ["#5fa815", "#003cef", "#f18a03", "#ef0000"];  // green, light blue, blue, orange, red
-        else
-          var colors = ["#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6","#f700d6"]; // all purple
-
+        // grey = #7a7a7a
+        // green = "#5fa815"
+        var colors = ["#0276f0", "#0276f0", "#f47a00", "#ef0000", "#f700d6", "#f700d6"];  // blue, blue, orange, red, purple, purple....
         return colors[classIndex];
       }
 
-      ready() {
-        super.ready();
-        this.initPlot();
-      }
-
       ////////////////////////////////////////////////////////////////////////
       // @Private
-      connectedCallback() {
-        super.connectedCallback();
-        window.addEventListener('resize', this._boundListener);
+      resetPointsTraceLayout() {
+        this.pointsTraceLayout.x = new Array();
+        this.pointsTraceLayout.y = new Array();
+        this.pointsTraceLayout.text = new Array();
+        this.pointsTraceLayout.error_x.array = new Array();
+        this.pointsTraceLayout.error_x.arrayminus = new Array();
+        this.pointsTraceLayout.error_y.array = new Array();
+        this.pointsTraceLayout.error_y.arrayminus = new Array();
       }
 
 
-      ////////////////////////////////////////////////////////////////////////
-      // @Private
-      disconnectedCallback() {
-        super.disconnectedCallback();
-        window.removeEventListener('onresize', this._boundListener);
-      }
 
-      initPlot() {
+      initPlot(isFirstLoad) {
         this.countData = 0; // global points counter
         this.countDataOnPlot = 0; // counts the points displayed
-        this.dataArrays = {};  // the keys are intergers (0,1,2...classesnumber) and the values are TraceClass containers
         this.annotations = []; // the annotations are independent from the classes
         this.performanceTime = 0;
+        this.resetPointsTraceLayout();
 
-        this.layout["annotations"];
+        if(! isFirstLoad)
+          Plotly.react( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: this.scrollzoom});
+        else
+          Plotly.newPlot( this.getPlot(), [this.pointsTraceLayout], this.layout, {scrollZoom: this.scrollzoom});
 
-        ////////////////////////////////////////////////////////////////////////
-        // Computing colors
-        var colors = [];
-        for(var i = 0; i < this.classesnumber; i++)
+      }
+
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      shiftArray(array) {
+        if(array.length > this.slidingwindowsize)
         {
-          colors.push(this.getClassColor(this.classesnumber,i));
+          var offset = array.length - this.slidingwindowsize;
+          for(var i=0; i < offset; i++)
+          {
+            array.shift();
+          }
         }
+      }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Initialize the Data Arrays
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          this.dataArrays[i] = new TraceClass(i,colors[i]);
-        }
+      /////////////////////////////////////////////////////////////////////////
+      // @Private
+      addPlaceHolderForAnnotation() {
+        var annotation = {};//JSON.parse(JSON.stringify(this.annotationsLayout));
+        annotation["showarrow"] = false;
+        this.annotations.push(annotation);
+        this.shiftArray(this.annotations);
+      }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Get Plotly trace objects
-        var traces = [];
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
-          trace["marker"]["color"] = colors[i];
-          traces.push(trace);
-        }
-        ////////////////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////
+      // @Private
+      addAnnotation(x,y) {
 
-        // initialize the plot
-        Plotly.newPlot( this.getPlot(), traces, this.layout, {scrollZoom: true});
+        var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
 
+        annotation["x"]  = x;
+        annotation["y"]  = y;
+        annotation["ax"] = x;
+
+        this.annotations.push(annotation);
+        this.shiftArray(this.annotations);
       }
 
 
@@ -238,12 +168,12 @@
       // PUBLIC API
       //////////////////////////////////////////
 
-      static get is() { return 'spectral-light-curve'; }
+      static get is() { return 'spectra-lc'; }
       static get properties() {
         return {
           elemName: {
             type: String,
-            value: 'light-curve'
+            value: 'spectra-lc'
           },
           /*
           width: {
@@ -281,9 +211,9 @@
             type: Object,
             computed: 'computeLayout(plottitle, xlabel, ylabel)'
           },
-          generalTraceLayout: {
+          pointsTraceLayout: {
             type: Object,
-            computed: 'computeGeneralTraceLayout()'
+            computed: 'computePointsTraceLayout()'
           },
           annotationsLayout: {
             type: Object,
@@ -327,10 +257,12 @@
             "0.0000001","0.0000002","0.0000003","0.0000004","0.0000005","0.0000006","0.0000007","0.0000008","0.0000009",
             "0.000001","0.000002","0.000003","0.000004","0.000005","0.000006","0.000007","0.000008","0.000009",
             "0.00001","0.00002","0.00003","0.00004","0.00005","0.00006","0.00007","0.00008","0.00009"],
-          }
+          },
+          annotations: [],
+          shapes: []
         }
       }
-      computeGeneralTraceLayout() {
+      computePointsTraceLayout() {
         return {
                   mode: 'markers',
                   text: [],
@@ -338,7 +270,8 @@
                   y: [],
                   marker: {
                     size:8,
-                    symbol: ['circle']
+                    symbol: ['circle'],
+                    color: []
                   },
                   hoverinfo: 'text',
                   type: 'scatter',
@@ -381,7 +314,7 @@
 
 
       resetPlot() {
-        this.initPlot();
+        this.initPlot(false);
       }
       setPlotTitle(title) {
         this.layout["title"] = title;
@@ -401,58 +334,72 @@
         this.layout.yaxis["range"] = [ymin,ymax];
         Plotly.relayout(this.getPlot(), this.layout);
       }
+      addLine(x0,y0,x1,y1,color,width,dashType) {
+        var line = {
+                    type: 'line',
+                    x0: x0,
+                    y0: y0,
+                    x1: x1,
+                    y1: y1,
+                    xref: 'paper',
+                    line: {
+                      color: color,
+                      width: width,
+                      dash: dashType
+                    }
+                  };
+        this.layout["shapes"].push(line);
+      }
+
+      highlightsAnnotations() {
+        //var _annotations = Array.from(this.annotations);
+        //var _length = this.annotations.length-1;
+        //console.log(this.annotations[_length]);
+        //Plotly.relayout(this.getPlot(), 'annotations[1]');
+        this.layout["annotations"] = this.annotations;
+        this.annotationenabled = true;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
+
+      hideAnnotations() {
+        this.layout["annotations"] = [];
+        this.annotationenabled = false;
+        Plotly.relayout(this.getPlot(), this.layout);
+      }
+
       addPoint(text, x, y, err_x, err_x_min, err_y, err_y_min, addUpperLimit, pointClass) {
 
         // increment global counter
         this.countData += 1;
 
-        // push the point into the container
-        this.dataArrays[pointClass].feed(text, x, y, err_x, err_x_min, err_y, err_y_min);
+        // increment points on plot counter
+        this.countDataOnPlot += 1;
 
-        // update the counter of the number of points on the plot
-        this.countDataOnPlot = this.getTotalPoints();
-
-        ////////////////////////////////////////////////////////////////////////
-        // Annotations (Upper Limit Arrows)
-        var annotation = JSON.parse(JSON.stringify(this.annotationsLayout));
-
+        // Annotations handling
         if(addUpperLimit)
-        {
-          annotation["x"]  = Math.log10(x);
-          annotation["y"]  = Math.log10(y);
-          annotation["ax"] = Math.log10(x);
-        }
+          this.addAnnotation(x,y);
         else
-        {
-          annotation["showarrow"] = false;
-        }
-        this.annotations.push(annotation);
-        ////////////////////////////////////////////////////////////////////////
+          this.addPlaceHolderForAnnotation();
 
+        var color = this.getClassColor(pointClass);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Get Plotly trace objects
-        var traces = [];
-        for(var i = 0; i < this.classesnumber; i++)
-        {
-          var trace = this.dataArrays[i].getTraceForPlotly(this.generalTraceLayout);
-          traces.push(trace);
-        }
-        ////////////////////////////////////////////////////////////////////////
+        this.pointsTraceLayout.marker.color.push(color);
 
-        console.log(traces[pointClass]);
+        this.shiftArray(this.pointsTraceLayout.marker.color);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Update plot
-        Plotly.react(this.getPlot(), traces, this.layout);
-        //https://codepen.io/etpinard/pen/QdZoQd
-        //Plotly.extendTraces(this.getPlot(), {y: [[rand()], [rand()]]}, [0, 1])
+        Plotly.extendTraces(this.getPlot(), { x: [[x]],
+                                              y: [[y]],
+                                              text: [[text]],
+                                              'error_x.array': [[err_x]],
+                                              'error_x.arrayminus': [[err_x_min]],
+                                              'error_y.array': [[err_y]],
+                                              'error_y.arrayminus': [[err_y_min]]}, [0])
         ////////////////////////////////////////////////////////////////////////
 
       }
 
     }
 
-    window.customElements.define(SpectralLightCurve.is, SpectralLightCurve);
+    window.customElements.define(SpectraLc.is, SpectraLc);
   </script>
 </dom-module>
