@@ -1,11 +1,9 @@
 {
-  "name": "light-curve",
-  "description": "This element will display the light-curve plot",
-  "main": "light-curve.html",
+  "name": "rta-gui-components",
+  "description": "This software contains Plotly.js web components developed with Polymer 2",
+  "main": "",
   "dependencies": {
-    "polymer": "Polymer/polymer#^2.0.0",
-    "MathJax": "^2.7.5",
-    "plotly.js": "^1.39.3"
+    "polymer": "Polymer/polymer#^2.0.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"

@@ -1,34 +1,42 @@
 # RTA-GUI-Components
 
-
 ## Description
-This software contains Plotly.js plots incapsulated in Polymer Components i.e. a single element or group of related elements which you intend to use in other element or app projects, or distribute on a registry like Bower or NPM. Elements are reusable and organized to be used alongside other elements, so components are referenced outside the project.
+This software contains Plotly.js web components developed with Polymer 2.
 
-
-## Visualizing the components
-
-### Description:
-In order to test the Polymer components, an Express (Node.js) server has been setted up. Starts the server and then connect to it with the browser (use an ssh-tunnel if you are connceting with a remote ssh connection). The server will simulate the data streaming adding points to the plots.
+## Components in action
+Start the Express (Node.js) server and then connect to it with the browser (use an ssh-tunnel if you are connecting with a remote ssh connection).
 
 ### Pre-requisities:
 * Node.js (download binaries at https://nodejs.org/dist/v8.11.3/node-v8.11.3-linux-x64.tar.xz)
 
 ### First-time setup:
-* git clone https://github.com/cta-rta/RTA-GUI-Component
-* cd RTA-GUI-Component/test_page
-* prepend-path PATH \<node_folder\>/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
-* npm install (it will install the backend dependencies locally and Bower)
-* bower install (it will install the frontend dependencies)
-* . start_server.sh (will copy the components in the test_page and it will start the server)
-* (optional) If using a ssh remote connetction, use a ssh-tunnel with:  ssh -N -L \<your-port\>:localhost:3000 \<user@machine-address\>
+Download the code with:
+```bash
+  git clone https://github.com/cta-rta/rta-gui-component
+```
+Load Node.js with:
+```bash
+  prepend-path PATH \<node_folder\>/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
+```
+Install Express and Bower with:
+```bash
+  npm install
+```
+Install the component's javascript dependencies with:
+```bash
+  bower install
+```
+Start the server with:
+```bash
+  cd test_page
+  . start_test.sh
+```
+(optional) If using a ssh remote connetction, use a ssh-tunnel with:
+```bash
+  ssh -N -L \<your-port\>:localhost:3000\<user@machine-address\>
+```
 
-### After first-time setup:
-* cd RTA-GUI-Component/test_page
-* prepend-path PATH \<node_folder\>/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
-* . start_server.sh (will copy the components in the test_page and it will start the server)
-* (optional) If using a ssh remote connetction, use a ssh-tunnel with:  ssh -N -L \<your-port\>:localhost:3000 \<user@machine-address\>
-
-# Components
+# Components API
 
 ## \<light-curve\>
 
@@ -94,16 +102,11 @@ Example
 
 # Development
 
-## First setup
-Download node binaries
-prepend-path PATH /home/cta/nodejs-v8.11.3/node-v8.11.3-linux-x64/bin
-npm install polymer-cli
-npm install bower
-bower install --save Polymer/polymer#^2.0.0
+## Develop new components
+Use the webcomp-example.hmtl as a starting point to develop a new web component. Once the component is ready, create a test page and update the start_test.sh script.
 
-## Info
+## Plotly Shadow Dom fix
 * Out of the box plotly does not work with the Polymer's shadow dom. This is due to the way it adds styles to the main document. If each template includes the appropriate styles plotly works fine. A style module was created (https://www.polymer-project.org/2.0/docs/devguide/style-shadow-dom) and each component imports it with: <style include="plotly-style"></style>.
-
 
 ## Install external dependency
 Run the following command in the element's directory:
