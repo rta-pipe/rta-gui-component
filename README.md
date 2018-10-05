@@ -25,6 +25,8 @@ Install Express and Bower with:
 Install the component's javascript dependencies with:
 ```bash
   bower install
+  bower install https://github.com/plotly/plotly.js.git#v1.39.2 --save
+  bower install https://github.com/mathjax/MathJax.git#2.7.5 --save
 ```
 Start the server with:
 ```bash
