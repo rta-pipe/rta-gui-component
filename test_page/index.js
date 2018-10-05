@@ -8,27 +8,32 @@ if( process.argv.length < 3 ) {
 var filename = process.argv[2]
 
 var fs = require('fs');
-if ( ! fs.existsSync('./'+filename)) {
+if ( ! fs.existsSync('./test_pages/'+filename)) {
   return console.log(`The webpage ${filename} doesnt exist!`);
 }
 
+dirname = __dirname.substr(  0, __dirname.lastIndexOf('/') + 1);
+console.log(dirname)
+
 app.use('/static', express.static(path.join(__dirname, '/examples')))
-app.use("/imports", express.static(path.join(__dirname, '/imports')));
-app.use("/styles", express.static(path.join(__dirname, '/styles')));
 app.use("/real_data", express.static(path.join(__dirname, '/real_data')));
 
-app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')))
 
-app.use('/extensions', express.static(path.join(__dirname, '/bower_components/MathJax/extensions')))
+app.use("/imports", express.static(path.join(dirname, '/imports')));
+app.use("/styles", express.static(path.join(dirname, '/styles')));
+app.use('/bower_components', express.static(path.join(dirname, '/bower_components')))
+app.use('/extensions', express.static(path.join(dirname, '/bower_components/MathJax/extensions')))
+app.use('/components', express.static(path.join(dirname, '/components')))
 
 
 
-app.use('/components', express.static(path.join(__dirname, '/components')))
+
+
 
 app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname + '/'+filename));
+  res.sendFile(path.join(__dirname + '/test_pages/'+filename));
 });
 
 app.listen(3000, function () {
-  console.log('RTA-GUI-Components TestPage app listening on port 3000!');
+  console.log('RTA-GUI-Components '+filename+' app listening on port 3000!');
 });
