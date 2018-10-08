@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rta-gui-components</title>
+
+    <!-- rta-detection-datatable -->
+    <link rel="import" href="/components/rta-detection-datatable.html">
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+
+      <h1>rta-gui-components testpage</h1>
+      <rta-detection-datatable id="detection-dt" dataendpoint='/wrong/detections.json'></rta-detection-datatable>
+      <button onclick="fetchNewData()">Fetch new data</button>
+      <button onclick="addRow()">Add row</button>
+      <br>
+
+    </div>
+
+    <script>
+      function addRow(){
+        var row = JSON.parse('{"label":"A-Test-1", "x":99999.999,"y":"33333","flux_err":"3137.94569515991","time_err":0.00034722222335404,"text":"58130 , 58130.0006944 , 0 +/- 3137.9 *10^-16 , sqrt(TS)= 0","sqrtts":"1000","ra":83.633,"dec":22.015,"t_start_mjd":58130,"t_stop_mjd":58130.0006944,"t_start_tt":"442800000","t_stop_tt":"442800060","detectionid":"9999"}');
+        document.querySelector('#detection-dt').addRow(row);
+      }
+      function fetchNewData(){
+        document.querySelector('#detection-dt').fetchNewData("/static/detections.json");
+      }
+
+      $('document').ready(function() {
+      });
+    </script>
+
+  </body>
+</html>
