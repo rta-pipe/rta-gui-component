@@ -13,7 +13,6 @@ if ( ! fs.existsSync('./test_pages/'+filename)) {
 }
 
 dirname = __dirname.substr(  0, __dirname.lastIndexOf('/') + 1);
-console.log(dirname)
 
 app.use('/static', express.static(path.join(__dirname, '/examples')))
 app.use("/real_data", express.static(path.join(__dirname, '/real_data')));

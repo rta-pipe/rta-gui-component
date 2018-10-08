@@ -1,21 +1,21 @@
 {
-  "name": "test_page",
-  "version": "1.0.0",
-  "description": " Test page for the RTA-GUI-Components project",
-  "main": "index.js",
+  "name": "rta-gui-components",
+  "version": "",
+  "description": "This software contains Plotly.js web components developed with Polymer 2",
+  "main": "test_page/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cta-rta/RTA-GUI-Component.git"
+    "url": "git+https://github.com/cta-rta/rta-gui-component.git"
   },
   "author": "Leonardo Baroncelli",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cta-rta/RTA-GUI-Component/issues"
+    "url": "https://github.com/cta-rtarta-gui-component/issues"
   },
-  "homepage": "https://github.com/cta-rta/RTA-GUI-Component#readme",
+  "homepage": "https://github.com/cta-rta/rta-gui-component#readme",
   "dependencies": {
     "bower": "^1.8.4",
     "express": "^4.16.3"

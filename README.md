@@ -27,6 +27,9 @@ Install the component's javascript dependencies with:
   bower install
   bower install https://github.com/plotly/plotly.js.git#v1.39.2 --save
   bower install https://github.com/mathjax/MathJax.git#2.7.5 --save
+  bower install --save bwt-datatable
+  bower install web-animations-js --save
+
 ```
 Start the server with:
 ```bash
@@ -37,6 +40,7 @@ Start the server with:
 ```bash
   ssh -N -L \<your-port\>:localhost:3000\<user@machine-address\>
 ```
+
 
 # Components API
 
@@ -101,11 +105,41 @@ Example
 * addPoint(x);
 * resetPlot();
 
+## \<rta-detection-datatable\>
+This element will display a list of detections in a tabular fashion. The table is responsive and it allows the sorting by column-properties. An input text element allows the filtering of data based on the value of the 'label' property.
+
+### Static Configurations
+* [dataendpoint] : the url for the http get request to fetch a batch of data.  
+
+Example
+
+\<rta-detection-datatable id="detections-table" dataendpoint='/static/detections.json'\>\</rta-detection-datatable\>
+
+
+
+### API
+* addRow(json_row);
+  * add a Json object as a table row. The Json object must have the following fields:
+    * dec
+    * detectionid
+    * flux_err
+    * label
+    * ra
+    * sqrtts
+    * t_start_mjd
+    * t_stop_mjd
+    * t_start_tt
+    * son_row.hasOwnProperty('t_stop_tt
+    * x
+    * y
+* fetchNewData(dataendpoint);
+  * make a http get request to 'dataendpoint' in order to load a new set of detections (the existing data is overwritten).
+
 
 # Development
 
 ## Develop new components
-Use the webcomp-example.hmtl as a starting point to develop a new web component. Once the component is ready, create a test page and update the start_test.sh script.
+Use the webcomp-example.hmtl as a starting point to develop a new web component. Once the component is ready, create a test page under the test_pages/ directory.
 
 ## Plotly Shadow Dom fix
 * Out of the box plotly does not work with the Polymer's shadow dom. This is due to the way it adds styles to the main document. If each template includes the appropriate styles plotly works fine. A style module was created (https://www.polymer-project.org/2.0/docs/devguide/style-shadow-dom) and each component imports it with: <style include="plotly-style"></style>.

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>rta-gui-components</title>
+
+    <script src="/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+    <script>
+			window.Polymer = window.Polymer || {};
+			window.Polymer.dom = 'shadow';
+		</script>
+
+
+    <!-- web components  -->
+    <link rel="import" href="/bower_components/polymer/polymer.html">
+    <link rel="import" href="/bower_components/bwt-datatable/bwt-datatable.html">
+    <link rel="import" href="/bower_components/bwt-datatable/bwt-datatable-card.html">
+    <link rel="import" href="/bower_components/web-animations-js/web-animations-next.min.html">
+
+    <!-- rta-detection-datatable -->
+    <link rel="import" href="/components/rta-detection-datatable.html">
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+  </head>
+  <body>
+    <div class="container-fluid">
+
+      <h1>rta-gui-components testpage</h1>
+    </div>
+
+
+    <dom-bind>
+      <template>
+
+
+        <paper-datatable-card id="datatableCard" header="Detection list table" page-size="10" data-source="{{dataSource}}" id-property="id">
+					<div slot="toolbar-main">
+						<paper-input value="{{searchTerm}}" on-input="retrieveResults" label="Search..." style="display:inline-block" no-label-float>
+							<div prefix>
+								<iron-icon icon="search"></iron-icon>
+							</div>
+						</paper-input>
+						<paper-icon-button icon="cached" on-tap="retrieveResults"></paper-icon-button>
+					</div>
+					<paper-datatable id="datatable" on-row-tap="rowTapped">
+						<div no-results>
+							Loading or no more items...
+						</div>
+
+            <!--Attributes: sorted inactive, sortable, edit-icon dialog  format-value="{{clip}}" style="min-width: 320px"-->
+            <paper-datatable-column id="id" header="Id" property="id" type="Number" tooltip="sort_on:id" inactive></paper-datatable-column>
+						<paper-datatable-column id="label" header="Label" property="label" type="String" tooltip="sort_on:label" sortable></paper-datatable-column>
+						<paper-datatable-column id="sqrtts" header="sqrt(TS)" property="sqrtts" type="Number" tooltip="sort_on:sqrtts" sortable ></paper-datatable-column>
+            <paper-datatable-column id="flux" header="Flux" property="flux" type="Number" tooltip="sort_on:flux.y" sortable>
+              <template>
+                <span>[[value.y]] +/-</span>
+    						<span>[[value.flux_err]] ^10-16</span>
+              </template>
+            </paper-datatable-column>
+            <paper-datatable-column id="t_mjd" header="Time MJD" property="t_mjd" type="Number" sortable tooltip="sort_on:t_mjd.t_stop_mjd" >
+              <template>
+                <span>[[value.t_start_mjd]] - </span>
+                <span>[[value.t_stop_mjd]]</span>
+              </template>
+            </paper-datatable-column>
+            <paper-datatable-column id="ra" header="ra" property="ra" type="Number" sortable tooltip="sort_on:ra"></paper-datatable-column>
+            <paper-datatable-column id="dec" header="dec" property="dec" type="Number" sortable tooltip="sort_on:dec" ></paper-datatable-column>
+            <paper-datatable-column id="t_tt" header="Time TT" property="t_tt" type="Number" sortable tooltip="sort_on:t_tt.t_stop_tt">
+              <template>
+                <span>[[value.t_start_tt]] - </span>
+                <span>[[value.t_stop_tt]]</span>
+              </template>
+            </paper-datatable-column>
+            <paper-datatable-column id="detectionid" header="Detection id" property="detectionid" type="Number" sortable tooltip="sort_on:detectionid"></paper-datatable-column>
+
+					</paper-datatable>
+				</paper-datatable-card>
+
+      </template>
+    </dom-bind>
+
+
+
+	  <script>
+      var app = document.querySelector('dom-bind');
+
+      var cached = false;
+      var all_data_to_show = [];
+
+      var paginateResults = function(data, page, pageSize, callback) {
+        //console.log(data.length,page,pageSize);
+        callback(data.slice((page-1)*pageSize, (page)*pageSize))
+      }
+
+      var nestData = function(data, callback) {
+        callback(data.map(function(item){
+
+          item["flux"]={};
+          item["flux"]["y"]=item["y"];
+          item["flux"]["flux_err"]=item["flux_err"];
+
+          item["t_mjd"]={};
+          item["t_mjd"]["t_start_mjd"]=item["t_start_mjd"];
+          item["t_mjd"]["t_stop_mjd"]=item["t_stop_mjd"];
+
+          item["t_tt"]={};
+          item["t_tt"]["t_start_tt"]=item["t_start_tt"];
+          item["t_tt"]["t_stop_tt"]=item["t_stop_tt"];
+
+          return item;
+        }));
+      }
+
+      var sortData = function(data, sortOptions, callback) {
+
+        var column = document.querySelector('#'+sortOptions.property);
+
+        var propertiesToSort = column.tooltip.split(":")[1];
+        var type = column.type;
+
+        if(column.inactive)
+          callback(data);
+        else{
+          data.sort(function(a, b) {
+
+            _propertiesToSort = propertiesToSort.split(".");
+
+            temp_a = a;
+            temp_b = b;
+            for (var i = 0; i < _propertiesToSort.length; i++) {
+              temp_a = temp_a[_propertiesToSort[i]];
+              temp_b = temp_b[_propertiesToSort[i]];
+            }
+
+
+            if(type="Number"){
+              x = parseFloat(temp_a);
+              y = parseFloat(temp_b);
+            }
+            else if(type="String"){
+              x = String(temp_a);
+              y = String(temp_b);
+            }
+
+            if(sortOptions.direction.localeCompare("asc")){
+              //console.log("asc",x,y,x>y,y<x,x > y ? 1 : y > x ? -1 : 0)
+              return x > y ? 1 : y > x ? -1 : 0;
+            }
+            else {
+              //console.log("desc",x,y,x>y,y<x,x > y ? 1 : y > x ? -1 : 0)
+              return x > y ? -1 : y > x ? 1 : 0;
+            }
+          });
+          console.log(data)
+          callback(data);
+        }
+      }
+
+      app.dataSource = {
+				get: function(sort, page, pageSize){
+					return new Promise(function(resolve, reject){
+
+            //console.log("sort:", sort, "page: ", page, "pageSize: ",pageSize);
+
+
+            if( ! cached ) {
+
+  						var httpRequest = new XMLHttpRequest();
+  						httpRequest.onreadystatechange = function() {
+  							if (httpRequest.readyState === XMLHttpRequest.DONE) {
+  								if (httpRequest.status === 200) {
+  									all_data_to_show = JSON.parse(httpRequest.responseText);
+                    paginateResults(all_data_to_show, page, pageSize, function(paginatedResults){
+                      nestData(paginatedResults, function(detections){
+                        sortData(detections, sort, function(sortedDetections){
+                          cached = true;
+                          app.set('dataSource.length', all_data_to_show.length);
+                          resolve(sortedDetections);
+                        });
+                      });
+                    });
+  								}
+  							}
+  						};
+              httpRequest.open('GET', '/static/detections.json');
+              httpRequest.send();
+            }
+            else if(cached){
+              paginateResults(all_data_to_show, page, pageSize, function(paginatedResults){
+                nestData(paginatedResults, function(detections){
+                  sortData(detections, sort, function(sortedDetections){
+                    resolve(sortedDetections);
+                  });
+                });
+              });
+             }
+
+
+            /*
+            "flux": {"y":"0.0000001", "flux_err":"3137.94569515991"}
+            "t_mjd": {"t_start_mjd":58130, t_stop_mjd":58130.0006944}
+            "t_tt": {"t_start_tt":"442800000", "t_stop_tt":"442800060"}
+            */
+            /*
+            fitsfile = images_array[i].substr(0, images_array[i].lastIndexOf("sky1.png")) + "cube.fits";
+            dataSet[i][j] = '<button type="submit" iduo ="open" onclick="goToImage('+i+');" class="btn btn-success">Select Map</button>';
+            dataSet[i][j] = "<button onclick=\"loadNewJs9LightWindow('"+fitsfile+"')\" class='btn btn-success'>Analize</button>";
+            */
+					});
+				},
+				// none of the <templates> bind in an editable way right now, but if they would this is the function
+				// that's triggered after an edit
+				set: function(id, property, value){
+					console.info("a save was triggered", arguments);
+				},
+				length:0
+			};
+
+
+      app.retrieveResults = function(ev){
+				app.$.datatableCard.retrieveVisibleData();
+			};
+      app.rowTapped = function(ev){
+				console.log(ev)
+        ev.preventDefault();
+			};
+
+
+		</script>
+  </body>
+</html>
