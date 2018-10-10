@@ -27,7 +27,7 @@ Install the component's javascript dependencies with:
   bower install
   bower install https://github.com/plotly/plotly.js.git#v1.39.2 --save
   bower install https://github.com/mathjax/MathJax.git#2.7.5 --save
-  bower install --save bwt-datatable
+  bower install bwt-datatable --save
   bower install web-animations-js --save
 
 ```
